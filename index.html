@@ -3,973 +3,1286 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nano Banana: Screenshot Localizer Pro</title>
+<title>Nano Banana — Screenshot Localizer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ─── TOKENS ─────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   THEME SYSTEM
+══════════════════════════════════════════════════════ */
 :root {
-  --bg:       #080809;
-  --s1:       #0f0f11;
-  --s2:       #141417;
-  --s3:       #1c1c20;
-  --border:   #242428;
-  --border2:  #2e2e34;
-  --lime:     #c8f135;
-  --lime-dim: rgba(200,241,53,.08);
-  --lime-glow:rgba(200,241,53,.18);
-  --violet:   #7c6bff;
-  --violet-dim:rgba(124,107,255,.1);
-  --text:     #f2f2f3;
-  --muted:    #6b6b74;
-  --muted2:   #9494a0;
-  --success:  #3effa0;
-  --danger:   #ff5f72;
-  --warn:     #ffb830;
-  --radius:   14px;
-  --radius-sm:8px;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.1);
 }
 
-/* ─── RESET ──────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; }
+/* DARK THEME (default) */
+[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --bg2: #111114;
+  --surface: #16161a;
+  --surface2: #1e1e24;
+  --surface3: #26262e;
+  --border: #2a2a32;
+  --border2: #36363f;
+  --text: #f0f0f2;
+  --text2: #a0a0ac;
+  --text3: #5a5a68;
+  --accent: #c8f135;
+  --accent-dim: rgba(200,241,53,.1);
+  --accent-glow: rgba(200,241,53,.2);
+  --accent-text: #080809;
+  --violet: #8b7fff;
+  --violet-dim: rgba(139,127,255,.12);
+  --success: #2ecc71;
+  --danger: #ff4757;
+  --warn: #ffa502;
+  --step-done: #2ecc71;
+  --step-active: #c8f135;
+  --step-idle: #2a2a32;
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+  --bg: #f5f5f0;
+  --bg2: #ebebE5;
+  --surface: #ffffff;
+  --surface2: #f8f8f4;
+  --surface3: #eeeee8;
+  --border: #ddddd5;
+  --border2: #c8c8be;
+  --text: #1a1a20;
+  --text2: #5a5a6a;
+  --text3: #9a9aaa;
+  --accent: #1a7a2e;
+  --accent-dim: rgba(26,122,46,.08);
+  --accent-glow: rgba(26,122,46,.15);
+  --accent-text: #ffffff;
+  --violet: #5c4bff;
+  --violet-dim: rgba(92,75,255,.08);
+  --success: #1a7a2e;
+  --danger: #d63031;
+  --warn: #e17055;
+  --step-done: #1a7a2e;
+  --step-active: #1a7a2e;
+  --step-idle: #ddddd5;
+  --noise: none;
+}
+
+/* SUNSET THEME */
+[data-theme="sunset"] {
+  --bg: #1a0e1c;
+  --bg2: #221326;
+  --surface: #2a1830;
+  --surface2: #341e3c;
+  --surface3: #3e2548;
+  --border: #4a2e58;
+  --border2: #5c3870;
+  --text: #f5e8ff;
+  --text2: #c0a0d8;
+  --text3: #7a5890;
+  --accent: #ff6b9d;
+  --accent-dim: rgba(255,107,157,.12);
+  --accent-glow: rgba(255,107,157,.25);
+  --accent-text: #fff;
+  --violet: #ffb347;
+  --violet-dim: rgba(255,179,71,.12);
+  --success: #80ffbd;
+  --danger: #ff4c6a;
+  --warn: #ffb347;
+  --step-done: #80ffbd;
+  --step-active: #ff6b9d;
+  --step-idle: #3e2548;
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ARCTIC THEME */
+[data-theme="arctic"] {
+  --bg: #e8f4fd;
+  --bg2: #dceef8;
+  --surface: #ffffff;
+  --surface2: #f0f8ff;
+  --surface3: #e0f0fa;
+  --border: #b8d8ee;
+  --border2: #8ec4e0;
+  --text: #0d2840;
+  --text2: #3a6080;
+  --text3: #7aaabf;
+  --accent: #0066cc;
+  --accent-dim: rgba(0,102,204,.08);
+  --accent-glow: rgba(0,102,204,.18);
+  --accent-text: #fff;
+  --violet: #8844dd;
+  --violet-dim: rgba(136,68,221,.08);
+  --success: #006644;
+  --danger: #cc2200;
+  --warn: #cc6600;
+  --step-done: #006644;
+  --step-active: #0066cc;
+  --step-idle: #b8d8ee;
+  --noise: none;
+}
+
+/* MOCHA THEME */
+[data-theme="mocha"] {
+  --bg: #1c1410;
+  --bg2: #241a14;
+  --surface: #2e2018;
+  --surface2: #3a2a1e;
+  --surface3: #463428;
+  --border: #5a4030;
+  --border2: #6e5040;
+  --text: #f5e8d0;
+  --text2: #c8a878;
+  --text3: #7a6048;
+  --accent: #e8a040;
+  --accent-dim: rgba(232,160,64,.12);
+  --accent-glow: rgba(232,160,64,.25);
+  --accent-text: #1c1410;
+  --violet: #c87878;
+  --violet-dim: rgba(200,120,120,.12);
+  --success: #80c870;
+  --danger: #e05050;
+  --warn: #e8a040;
+  --step-done: #80c870;
+  --step-active: #e8a040;
+  --step-idle: #3a2a1e;
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════
+   GLOBAL
+══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
 body {
-  font-family:'DM Sans', sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
   font-size: 14px;
   line-height: 1.5;
+  overflow-x: hidden;
+  transition: background .3s, color .3s;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: var(--noise);
+  pointer-events: none; z-index: 0;
 }
 
-/* subtle grid bg */
-body::before {
-  content:'';
-  position:fixed; inset:0; pointer-events:none; z-index:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
-  background-size: 40px 40px;
+/* ══════════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  position: relative; z-index: 1;
 }
 
-/* ─── LAYOUT ─────────────────────────────────────────────────── */
-.wrap { max-width:1280px; margin:0 auto; padding:0 28px; position:relative; z-index:1; }
-
-/* ─── HEADER ─────────────────────────────────────────────────── */
-header {
-  padding: 28px 0 24px;
-  display: flex; align-items:center; justify-content:space-between;
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  height: 60px;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-}
-.logo { display:flex; align-items:center; gap:14px; }
-.logo-icon {
-  width:42px; height:42px; border-radius:12px;
-  background: linear-gradient(135deg,#d4ff50,#a8d400);
-  display:grid; place-items:center; font-size:22px;
-  box-shadow: 0 4px 20px rgba(200,241,53,.3);
-  flex-shrink:0;
-}
-.logo-text h1 {
-  font-family:'Instrument Serif', serif;
-  font-size:20px; font-weight:400; letter-spacing:-.3px;
-  line-height:1.1;
-}
-.logo-text h1 em { font-style:italic; color:var(--lime); }
-.logo-text p { font-size:11px; color:var(--muted); font-weight:400; margin-top:1px; letter-spacing:.03em; }
-
-.header-right { display:flex; align-items:center; gap:10px; }
-.pill {
-  font-size:11px; font-weight:500; font-family:'DM Mono',monospace;
-  color:var(--muted2); background:var(--s2);
-  border:1px solid var(--border); border-radius:20px;
-  padding:5px 12px; letter-spacing:.04em;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
 }
 
-/* ─── API BANNER ─────────────────────────────────────────────── */
-.api-bar {
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:var(--radius); padding:18px 20px;
-  margin:24px 0;
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -.3px;
 }
-.api-bar label { font-size:12px; font-weight:600; color:var(--muted2); white-space:nowrap; letter-spacing:.05em; text-transform:uppercase; }
-.api-input-wrap { flex:1; min-width:260px; position:relative; }
-.api-input-wrap input {
-  width:100%; padding:10px 14px 10px 40px;
-  background:var(--s3); border:1px solid var(--border2);
-  border-radius:var(--radius-sm); color:var(--text);
-  font-family:'DM Mono',monospace; font-size:13px; outline:none;
-  transition:border-color .2s, box-shadow .2s;
+.logo-emoji {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent); display: grid; place-items: center;
+  font-size: 17px; flex-shrink: 0;
+  box-shadow: 0 2px 10px var(--accent-glow);
 }
-.api-input-wrap input:focus { border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-dim); }
-.api-input-wrap .key-icon {
-  position:absolute; left:13px; top:50%; transform:translateY(-50%);
-  font-size:14px; pointer-events:none;
+.logo em { color: var(--accent); font-style: normal; }
+
+.top-right { display: flex; align-items: center; gap: 10px; }
+
+/* Theme switcher */
+.theme-switcher {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 3px;
 }
+.theme-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; font-size: 13px;
+  display: grid; place-items: center;
+  transition: all .2s; background: transparent;
+}
+.theme-btn:hover { transform: scale(1.15); }
+.theme-btn.active { border-color: var(--accent); }
+
+.model-badge {
+  font-size: 11px; font-family: var(--font-mono);
+  color: var(--text3); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 4px 12px;
+}
+
+/* ══════════════════════════════════════════════════════
+   WIZARD SHELL
+══════════════════════════════════════════════════════ */
+.wizard {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+
+/* STEP NAV (left rail) */
+.step-nav {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 32px 0;
+  position: sticky; top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.step-nav-inner { padding: 0 20px; }
+
+.step-nav-title {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .1em;
+  margin-bottom: 20px; padding: 0 8px;
+}
+
+.step-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: all .2s;
+  margin-bottom: 2px; position: relative;
+}
+.step-item:hover:not(.active) { background: var(--surface2); }
+.step-item.active { background: var(--accent-dim); }
+.step-item.completed .step-num { background: var(--step-done); color: #fff; border-color: var(--step-done); }
+.step-item.active .step-num { background: var(--step-active); color: var(--accent-text); border-color: var(--step-active); box-shadow: 0 0 12px var(--accent-glow); }
+
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--step-idle); border: 2px solid var(--border);
+  display: grid; place-items: center; flex-shrink: 0;
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  font-family: var(--font-mono); transition: all .25s;
+  margin-top: 1px;
+}
+.step-item.completed .step-num::after { content: '✓'; }
+.step-item.completed .step-num-inner { display: none; }
+
+.step-label { flex: 1; min-width: 0; }
+.step-label strong {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--text2); transition: color .2s;
+  line-height: 1.3;
+}
+.step-item.active .step-label strong,
+.step-item.completed .step-label strong { color: var(--text); }
+.step-label span { font-size: 11px; color: var(--text3); line-height: 1.4; display: block; margin-top: 1px; }
+
+/* connector line */
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute; left: 20px; top: 38px;
+  width: 2px; height: calc(100% - 14px);
+  background: var(--border);
+  border-radius: 1px;
+}
+.step-item.completed:not(:last-child)::after { background: var(--step-done); opacity: .5; }
+
+/* STEP CONTENT */
+.step-content {
+  padding: 40px 48px;
+  overflow-y: auto;
+}
+.step-panel { display: none; animation: fadeSlideIn .3s ease; }
+.step-panel.visible { display: block; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.step-header { margin-bottom: 32px; }
+.step-header h2 {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 800; color: var(--text);
+  letter-spacing: -.5px; line-height: 1.1;
+  margin-bottom: 8px;
+}
+.step-header h2 em { color: var(--accent); font-style: normal; }
+.step-header p { font-size: 14px; color: var(--text2); line-height: 1.6; max-width: 560px; }
+
+.step-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 36px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.step-footer-left { display: flex; align-items: center; gap: 10px; }
+
+/* ══════════════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; transition: all .2s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn:disabled { opacity: .35; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.btn-primary {
+  background: var(--accent); color: var(--accent-text);
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+.btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); filter: brightness(1.05); }
+.btn-secondary {
+  background: var(--surface2); color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--surface3); color: var(--text); border-color: var(--border2); }
+.btn-ghost {
+  background: transparent; color: var(--text3);
+  border: 1px solid transparent; padding: 8px 14px;
+}
+.btn-ghost:hover { color: var(--text2); background: var(--surface2); }
+.btn-danger {
+  background: var(--surface2); color: var(--danger);
+  border: 1px solid var(--border);
+}
+.btn-danger:hover:not(:disabled) { background: rgba(255,71,87,.1); border-color: var(--danger); }
+.btn-lg { padding: 13px 28px; font-size: 15px; }
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+
+/* ══════════════════════════════════════════════════════
+   STEP 1 — API KEY
+══════════════════════════════════════════════════════ */
+.api-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 560px;
+}
+.api-field {
+  display: flex; align-items: stretch;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.api-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.api-field-prefix {
+  display: flex; align-items: center;
+  padding: 0 14px;
+  background: var(--surface2);
+  border-right: 1.5px solid var(--border2);
+  font-size: 18px; flex-shrink: 0;
+}
+.api-field-input {
+  flex: 1; padding: 13px 14px;
+  background: var(--surface3);
+  border: none; outline: none;
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--text2); min-width: 0;
+}
+.api-field-suffix {
+  border: none; outline: none;
+  padding: 13px 14px;
+  width: 64px; text-align: center;
+  background: var(--surface2);
+  border-left: 2px solid var(--accent);
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+  color: var(--accent);
+}
+.api-field-suffix::placeholder { color: var(--text3); }
 .key-status {
-  display:flex; align-items:center; gap:7px;
-  font-size:12px; font-family:'DM Mono',monospace;
-  white-space:nowrap;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; font-size: 12px; color: var(--text3);
+  font-family: var(--font-mono);
 }
-.key-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
-.key-dot.ok  { background:var(--success); box-shadow:0 0 8px rgba(62,255,160,.5); }
-.key-dot.err { background:var(--danger); }
+.key-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: all .3s; }
+.key-dot.ok  { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.key-dot.err { background: var(--danger); }
 
-/* ─── MAIN GRID ──────────────────────────────────────────────── */
-.main { display:grid; grid-template-columns:320px 1fr; gap:20px; padding-bottom:60px; }
+/* ══════════════════════════════════════════════════════
+   STEP 2 — UPLOAD
+══════════════════════════════════════════════════════ */
+.dropzone {
+  border: 2px dashed var(--border2); border-radius: var(--radius);
+  padding: 48px 32px; text-align: center; cursor: pointer;
+  transition: all .2s; position: relative; overflow: hidden;
+  background: var(--surface);
+}
+.dropzone:hover, .dropzone.hover { border-color: var(--accent); background: var(--accent-dim); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+.dz-icon { font-size: 40px; margin-bottom: 14px; display: block; line-height: 1; }
+.dz-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.dz-sub { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
+.dz-sub strong { color: var(--accent); }
 
-/* ─── SIDEBAR ────────────────────────────────────────────────── */
-.sidebar { display:flex; flex-direction:column; gap:16px; }
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px; margin-top: 20px;
+}
+.file-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+  position: relative;
+}
+.file-card:hover { border-color: var(--border2); box-shadow: var(--shadow-sm); }
+.file-card-img { width: 100%; height: 130px; object-fit: cover; background: var(--surface2); display: block; }
+.file-card-body { padding: 10px 12px; }
+.file-card-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-card-meta { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
+.file-card-remove {
+  position: absolute; top: 8px; right: 8px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  border: none; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; opacity: 0; transition: opacity .15s;
+}
+.file-card:hover .file-card-remove { opacity: 1; }
 
-.card {
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:var(--radius); padding:18px;
+/* ══════════════════════════════════════════════════════
+   STEP 3 — LANGUAGES
+══════════════════════════════════════════════════════ */
+.lang-search-wrap {
+  position: relative; margin-bottom: 16px;
+}
+.lang-search {
+  width: 100%; padding: 11px 14px 11px 38px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: var(--font-body); font-size: 13px; outline: none;
   transition: border-color .2s;
 }
-.card:hover { border-color: var(--border2); }
+.lang-search:focus { border-color: var(--accent); }
+.lang-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
 
-.card-head {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:14px;
+.lang-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
 }
-.card-label {
-  font-size:11px; font-weight:600; color:var(--muted);
-  text-transform:uppercase; letter-spacing:.08em;
-  display:flex; align-items:center; gap:6px;
+.lang-count-badge {
+  font-size: 12px; color: var(--text2); font-family: var(--font-mono);
 }
-.card-label .dot-accent {
-  width:6px; height:6px; border-radius:50%; background:var(--lime);
-}
+.lang-count-badge strong { color: var(--accent); }
+.lang-actions { display: flex; gap: 6px; }
 
-/* ─── DROP ZONE ──────────────────────────────────────────────── */
-.dropzone {
-  border:2px dashed var(--border2); border-radius:10px;
-  padding:24px 16px; text-align:center; cursor:pointer;
-  transition:all .2s; position:relative; overflow:hidden;
+.lang-section-hdr {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .1em;
+  padding: 12px 0 6px; grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
 }
-.dropzone.hover { border-color:var(--lime); background:var(--lime-dim); }
-.dropzone input[type=file] {
-  position:absolute; inset:0; opacity:0; cursor:pointer; font-size:0;
-}
-.dz-icon { font-size:26px; margin-bottom:8px; display:block; }
-.dz-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; }
-.dz-sub { font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; }
-.dz-sub strong { color:var(--lime); }
+.lang-section-hdr:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 
-/* ─── FILE LIST ──────────────────────────────────────────────── */
-#fileList { display:flex; flex-direction:column; gap:6px; margin-top:12px; max-height:220px; overflow-y:auto; }
-#fileList::-webkit-scrollbar { width:4px; }
-#fileList::-webkit-scrollbar-track { background:transparent; }
-#fileList::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-
-.file-item {
-  display:flex; align-items:center; gap:10px;
-  background:var(--s3); border:1px solid var(--border);
-  border-radius:8px; padding:8px 10px;
-  cursor:pointer; transition:border-color .15s;
-}
-.file-item:hover { border-color:var(--border2); }
-.file-item.selected { border-color:var(--violet); background:var(--violet-dim); }
-.file-thumb {
-  width:36px; height:36px; border-radius:5px;
-  object-fit:cover; flex-shrink:0; background:var(--s2);
-}
-.file-info { flex:1; min-width:0; }
-.file-name {
-  font-size:12px; font-weight:500; color:var(--text);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.file-meta { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:1px; }
-.file-remove {
-  background:none; border:none; cursor:pointer; color:var(--muted);
-  font-size:14px; padding:2px; line-height:1; flex-shrink:0;
-  transition:color .15s;
-}
-.file-remove:hover { color:var(--danger); }
-
-/* ─── LANGUAGES ──────────────────────────────────────────────── */
 .lang-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:5px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px;
+  max-height: 460px; overflow-y: auto;
+  padding-right: 4px;
 }
-.lang-btn {
-  background:var(--s3); border:1px solid var(--border);
-  border-radius:8px; padding:8px 10px;
-  color:var(--muted2); font-family:'DM Sans',sans-serif;
-  font-size:12px; font-weight:500; cursor:pointer;
-  transition:all .15s; display:flex; align-items:center; gap:6px;
-  text-align:left; white-space:nowrap;
-}
-.lang-btn:hover { border-color:var(--border2); color:var(--text); }
-.lang-btn.active {
-  border-color:var(--lime); background:var(--lime-dim);
-  color:var(--lime);
-}
-.lang-flag { font-size:15px; flex-shrink:0; }
-.lang-select-all {
-  font-size:11px; color:var(--muted); cursor:pointer;
-  background:none; border:none; font-family:'DM Sans',sans-serif;
-  text-decoration:underline; text-underline-offset:2px;
-  padding:0;
-}
-.lang-select-all:hover { color:var(--muted2); }
+.lang-grid::-webkit-scrollbar { width: 4px; }
+.lang-grid::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* ─── FORMAT PICKER ──────────────────────────────────────────── */
-.format-row { display:flex; gap:6px; }
-.fmt-btn {
-  flex:1; background:var(--s3); border:1px solid var(--border);
-  border-radius:8px; padding:9px; text-align:center;
-  font-size:12px; font-weight:600; color:var(--muted2);
-  cursor:pointer; transition:all .15s;
-  font-family:'DM Mono',monospace;
+.lang-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1.5px solid var(--border);
+  cursor: pointer; transition: all .15s;
+  font-size: 12px; font-weight: 500; color: var(--text2);
 }
-.fmt-btn:hover { border-color:var(--border2); color:var(--text); }
-.fmt-btn.active { border-color:var(--lime); background:var(--lime-dim); color:var(--lime); }
+.lang-chip:hover { border-color: var(--border2); color: var(--text); }
+.lang-chip.active { border-color: var(--accent); background: var(--accent-dim); color: var(--text); }
+.lang-chip .flag { font-size: 16px; flex-shrink: 0; }
+.lang-chip .lname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lang-chip .lcode { font-family: var(--font-mono); font-size: 9px; color: var(--text3); flex-shrink: 0; }
+.lang-chip.active .lcode { color: var(--accent); opacity: .7; }
 
-/* ─── TRANSLATE BUTTON ───────────────────────────────────────── */
-.btn-run {
-  width:100%; padding:13px;
-  background:var(--lime); color:#080809;
-  border:none; border-radius:10px;
-  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700;
-  cursor:pointer; letter-spacing:.02em;
-  transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px;
+/* ══════════════════════════════════════════════════════
+   STEP 4 — PROMPT
+══════════════════════════════════════════════════════ */
+.prompt-wrap {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: border-color .2s;
 }
-.btn-run:hover:not(:disabled) { background:#d4ff50; transform:translateY(-1px); box-shadow:0 6px 24px rgba(200,241,53,.25); }
-.btn-run:disabled { opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
+.prompt-wrap:focus-within { border-color: var(--accent); }
+.prompt-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.prompt-toolbar-left { display: flex; align-items: center; gap: 10px; }
+.prompt-toolbar-label { font-size: 12px; font-weight: 700; color: var(--text2); }
+.prompt-vars {
+  display: flex; gap: 6px;
+}
+.var-badge {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid var(--accent-glow); border-radius: 4px;
+  padding: 2px 7px;
+}
+.prompt-textarea {
+  width: 100%; min-height: 280px; padding: 16px;
+  background: transparent; border: none; outline: none;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
+  color: var(--text); resize: vertical;
+}
+.prompt-footer {
+  padding: 10px 16px; border-top: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.prompt-hint { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
 
-/* ─── PROGRESS ───────────────────────────────────────────────── */
-.progress-wrap { margin-top:12px; }
+/* ══════════════════════════════════════════════════════
+   STEP 5 — TRANSLATE (progress screen)
+══════════════════════════════════════════════════════ */
+.translate-summary {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.summary-item { text-align: center; }
+.summary-num { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--text); line-height: 1; }
+.summary-num.accent { color: var(--accent); }
+.summary-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-top: 4px; }
+
 .progress-track {
-  width:100%; height:4px; background:var(--s3);
-  border-radius:2px; overflow:hidden;
+  width: 100%; height: 6px; background: var(--surface2);
+  border-radius: 3px; overflow: hidden; margin-bottom: 10px;
 }
 .progress-fill {
-  height:100%; width:0%; background:var(--lime);
-  border-radius:2px; transition:width .35s ease;
+  height: 100%; width: 0%; background: var(--accent);
+  border-radius: 3px; transition: width .4s ease;
 }
-.progress-label {
-  font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;
-  margin-top:7px; display:flex; align-items:center; gap:6px; min-height:16px;
+.progress-label { font-size: 12px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 24px; min-height: 18px; }
+
+.jobs-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 400px; overflow-y: auto;
+  padding-right: 4px;
 }
+.jobs-list::-webkit-scrollbar { width: 4px; }
+.jobs-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* ─── ERROR BOX ──────────────────────────────────────────────── */
-#errorBox {
-  display:none; background:rgba(255,95,114,.06);
-  border:1px solid rgba(255,95,114,.3); border-radius:8px;
-  padding:10px 12px; margin-top:10px;
-  font-size:11px; font-family:'DM Mono',monospace; color:#ff8a96;
-  white-space:pre-wrap; max-height:100px; overflow-y:auto; line-height:1.6;
+.job-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 12px;
 }
+.job-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: var(--surface2); flex-shrink: 0; }
+.job-info { flex: 1; min-width: 0; }
+.job-name { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-lang { font-size: 11px; color: var(--text3); font-family: var(--font-mono); margin-top: 1px; }
+.job-status { flex-shrink: 0; }
+.job-spin { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+.job-ok { font-size: 16px; color: var(--success); }
+.job-err { font-size: 14px; color: var(--danger); }
+.job-idle { font-size: 14px; color: var(--text3); }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── CONTENT AREA ───────────────────────────────────────────── */
-.content { display:flex; flex-direction:column; gap:16px; }
+/* ══════════════════════════════════════════════════════
+   RESULTS (step 6 — shown after translation)
+══════════════════════════════════════════════════════ */
+.results-page { display: none; }
+.results-page.visible { display: block; }
 
-/* ─── EMPTY STATE ────────────────────────────────────────────── */
-.empty {
-  flex:1; background:var(--s1); border:1px solid var(--border);
-  border-radius:var(--radius); padding:80px 40px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:12px; text-align:center; min-height:380px;
+.results-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
 }
-.empty-icon { font-size:40px; opacity:.25; }
-.empty h3 { font-family:'Instrument Serif',serif; font-size:20px; font-weight:400; color:var(--muted2); }
-.empty p { font-size:13px; color:var(--muted); max-width:300px; line-height:1.7; }
+.results-top h2 { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
+.results-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ─── PREVIEW PANEL ──────────────────────────────────────────── */
+/* per-lang download strip */
+.lang-dl-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.lang-dl-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
+.lang-dl-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text2);
+  cursor: pointer; transition: all .15s;
+}
+.lang-dl-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* preview panel */
 .preview-panel {
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:var(--radius); overflow:hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
 }
 .preview-header {
-  padding:14px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  padding: 0 20px;
 }
-.preview-tabs { display:flex; gap:2px; overflow-x:auto; flex:1; }
-.preview-tabs::-webkit-scrollbar { height:0; }
+.preview-tabs-row {
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; border-bottom: 1px solid var(--border);
+}
+.preview-tabs-row:last-child { border-bottom: none; }
+.preview-tabs-row::-webkit-scrollbar { height: 0; }
+.preview-row-label {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .07em;
+  white-space: nowrap; padding: 12px 0; margin-right: 12px;
+  flex-shrink: 0;
+}
 .ptab {
-  padding:7px 14px; border-radius:6px; font-size:12px; font-weight:600;
-  color:var(--muted); cursor:pointer; background:none; border:none;
-  font-family:'DM Sans',sans-serif; white-space:nowrap; transition:all .15s;
+  padding: 12px 16px; font-size: 12px; font-weight: 600;
+  color: var(--text3); cursor: pointer; background: none; border: none;
+  font-family: var(--font-body); white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all .15s;
+  flex-shrink: 0;
 }
-.ptab:hover { color:var(--text); background:var(--s3); }
-.ptab.active { color:var(--lime); background:var(--lime-dim); }
-.preview-body { padding:18px; }
-.preview-compare {
-  display:grid; grid-template-columns:1fr 1fr; gap:12px;
-}
-.compare-side { }
+.ptab:hover { color: var(--text); }
+.ptab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.preview-body { padding: 20px; }
+.preview-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-side {}
 .compare-label {
-  font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase;
-  letter-spacing:.07em; margin-bottom:8px; display:flex; align-items:center; gap:5px;
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.compare-label .badge-orig { color:var(--muted2); }
-.compare-label .badge-trans { color:var(--lime); }
+.compare-label .badge { color: var(--accent); }
+.compare-dl-btn {
+  font-size: 11px; color: var(--violet); background: none; border: none;
+  cursor: pointer; font-family: var(--font-body); font-weight: 600;
+  padding: 0; text-decoration: underline; text-underline-offset: 2px;
+}
+.compare-dl-btn:hover { color: var(--accent); }
 .compare-img {
-  width:100%; max-height:220px; object-fit:contain;
-  border-radius:8px; border:1px solid var(--border);
-  display:block; background:var(--s3); cursor:zoom-in;
+  width: 100%; max-height: 300px; object-fit: contain;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  display: block; background: var(--surface2); cursor: zoom-in;
+  transition: box-shadow .2s;
 }
+.compare-img:hover { box-shadow: var(--shadow-md); }
 .compare-placeholder {
-  width:100%; aspect-ratio:16/9; border-radius:8px;
-  border:1px dashed var(--border2); background:var(--s2);
-  display:flex; align-items:center; justify-content:center;
-  font-size:12px; color:var(--muted); flex-direction:column; gap:6px;
+  width: 100%; min-height: 200px; border-radius: var(--radius-sm);
+  border: 2px dashed var(--border); background: var(--surface2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; font-size: 13px; color: var(--text3);
 }
 
-/* ─── RESULTS GRID ───────────────────────────────────────────── */
-.results-section { background:var(--s1); border:1px solid var(--border); border-radius:var(--radius); }
-.results-header {
-  padding:14px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+/* results grid */
+.results-grid-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
 }
-.results-header h3 { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; }
-.count-badge {
-  font-size:11px; font-family:'DM Mono',monospace;
-  background:var(--s3); border:1px solid var(--border2);
-  padding:2px 8px; border-radius:20px; color:var(--muted2);
+.results-grid-header h3 { font-size: 14px; font-weight: 700; color: var(--text); }
+.count-tag {
+  font-size: 11px; font-family: var(--font-mono);
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text3); padding: 2px 10px; border-radius: 20px;
 }
-.btn-zip {
-  padding:8px 16px;
-  background:var(--violet); color:#fff;
-  border:none; border-radius:8px;
-  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
-  cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px;
-}
-.btn-zip:hover { background:#9585ff; }
-.btn-zip:disabled { opacity:.4; cursor:not-allowed; }
 
 .results-grid {
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
-  gap:10px; padding:14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
-
-/* ─── RESULT CARD ────────────────────────────────────────────── */
 .result-card {
-  background:var(--s2); border:1px solid var(--border);
-  border-radius:10px; overflow:hidden;
-  transition:border-color .2s, transform .2s, box-shadow .2s;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden;
+  transition: all .2s;
 }
-.result-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.4); }
-.result-card.done:hover { border-color:rgba(200,241,53,.25); }
-
-.rc-img-wrap { position:relative; overflow:hidden; }
-.rc-img-wrap img { width:100%; max-height:130px; object-fit:cover; display:block; }
+.result-card:hover { border-color: var(--border2); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.result-card.done:hover { border-color: var(--accent); }
+.rc-img { position: relative; overflow: hidden; }
+.rc-img img { width: 100%; height: 140px; object-fit: cover; display: block; }
 .rc-placeholder {
-  width:100%; height:100px;
-  background:var(--s3); display:flex; flex-direction:column;
-  align-items:center; justify-content:center; gap:6px;
-  font-size:12px; color:var(--muted);
+  width: 100%; height: 120px;
+  background: var(--surface2); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 7px;
+  font-size: 12px; color: var(--text3);
 }
-.rc-spinner {
-  width:20px; height:20px; border:2px solid var(--border2);
-  border-top-color:var(--lime); border-radius:50%;
-  animation:spin .7s linear infinite;
-}
+.rc-spinner { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 .rc-overlay {
-  position:absolute; inset:0; background:rgba(8,8,9,.6);
-  display:flex; align-items:center; justify-content:center;
-  opacity:0; transition:opacity .2s;
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s;
 }
-.result-card:hover .rc-overlay { opacity:1; }
-.rc-preview-btn {
-  background:rgba(255,255,255,.12); backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,.15); color:#fff;
-  padding:7px 16px; border-radius:6px; font-size:12px; font-weight:600;
-  cursor:pointer; font-family:'DM Sans',sans-serif;
+.result-card:hover .rc-overlay { opacity: 1; }
+.rc-zoom-btn {
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+  color: #fff; padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--font-body);
 }
+.rc-body { padding: 10px 12px; }
+.rc-title { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.rc-lang { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 8px; }
+.rc-action-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.rc-dl-btn {
+  flex: 1; padding: 6px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; border: none;
+  cursor: pointer; transition: all .15s;
+  font-family: var(--font-body); text-decoration: none; display: block; text-align: center;
+  background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-glow);
+}
+.rc-dl-btn:hover { background: var(--accent); color: var(--accent-text); }
+.rc-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; font-family: var(--font-mono); }
+.rc-status.working { color: var(--accent); }
+.rc-status.done    { color: var(--success); }
+.rc-status.error   { color: var(--danger); }
 
-.rc-body { padding:10px; }
-.rc-title { font-size:12px; font-weight:600; color:var(--text); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rc-sub { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:10px; }
-
-.rc-actions { display:flex; gap:6px; }
-.btn-dl-png, .btn-dl-jpg {
-  flex:1; padding:7px 6px; border-radius:7px; text-align:center;
-  font-size:11px; font-weight:700; cursor:pointer;
-  font-family:'DM Sans',sans-serif; border:none; transition:all .15s;
-  text-decoration:none; display:block;
-}
-.btn-dl-png { background:var(--violet); color:#fff; }
-.btn-dl-png:hover { background:#9585ff; }
-.btn-dl-jpg { background:var(--s3); color:var(--muted2); border:1px solid var(--border2); }
-.btn-dl-jpg:hover { border-color:var(--border2); color:var(--text); background:var(--s2); }
-
-.rc-status {
-  display:inline-flex; align-items:center; gap:4px;
-  font-size:10px; font-weight:600; font-family:'DM Mono',monospace;
-  padding:3px 8px; border-radius:20px; margin-top:8px;
-}
-.rc-status.working { background:rgba(200,241,53,.08); color:var(--lime); border:1px solid rgba(200,241,53,.2); }
-.rc-status.done    { background:rgba(62,255,160,.06); color:var(--success); border:1px solid rgba(62,255,160,.2); }
-.rc-status.error   { background:rgba(255,95,114,.06); color:var(--danger); border:1px solid rgba(255,95,114,.2); }
-.rc-error-msg { font-size:10px; color:var(--danger); margin-top:6px; line-height:1.5; word-break:break-word; }
+/* text panel */
+.rc-text-toggle { font-size: 10px; color: var(--text3); cursor: pointer; background: none; border: none; font-family: var(--font-body); padding: 4px 0; text-decoration: underline; text-underline-offset: 2px; }
+.rc-text-toggle:hover { color: var(--text2); }
 .rc-textbox {
-  margin-top:8px; background:var(--s1); border:1px solid var(--border);
-  border-radius:6px; padding:8px 10px;
-  font-size:10px; font-family:'DM Mono',monospace; color:var(--muted2);
-  line-height:1.6; max-height:120px; overflow-y:auto; white-space:pre-wrap;
-  word-break:break-word;
-}
-.rc-textbox-label {
-  font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase;
-  letter-spacing:.07em; margin-top:8px; margin-bottom:3px;
+  margin-top: 6px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 10px; font-size: 10px;
+  font-family: var(--font-mono); color: var(--text3); line-height: 1.6;
+  max-height: 100px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
 }
 
-/* ─── LIGHTBOX ───────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   DOWNLOAD MODAL
+══════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px;
+  max-width: 440px; width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.5; }
+.format-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.format-opt {
+  padding: 18px 16px; border-radius: var(--radius-sm);
+  border: 2px solid var(--border); cursor: pointer;
+  text-align: center; transition: all .2s;
+  background: var(--surface2);
+}
+.format-opt:hover { border-color: var(--border2); }
+.format-opt.selected { border-color: var(--accent); background: var(--accent-dim); }
+.format-opt-icon { font-size: 28px; margin-bottom: 6px; }
+.format-opt-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.format-opt-desc { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
+.format-opt.selected .format-opt-name { color: var(--accent); }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ══════════════════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════════════════ */
 #lightbox {
-  position:fixed; inset:0; z-index:1000;
-  background:rgba(8,8,9,.92); backdrop-filter:blur(10px);
-  display:none; align-items:center; justify-content:center;
-  padding:40px;
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.92); backdrop-filter: blur(12px);
+  display: none; align-items: center; justify-content: center; padding: 48px;
 }
-#lightbox.open { display:flex; }
-#lightbox img {
-  max-width:100%; max-height:100%;
-  border-radius:10px; box-shadow:0 20px 80px rgba(0,0,0,.8);
-  object-fit:contain;
+#lightbox.open { display: flex; }
+#lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 24px 80px rgba(0,0,0,.8); object-fit: contain; }
+#lb-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
 }
-#lightbox-close {
-  position:absolute; top:20px; right:20px;
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
-  color:#fff; width:36px; height:36px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; font-size:18px; transition:background .15s;
-}
-#lightbox-close:hover { background:rgba(255,255,255,.2); }
-#lightbox-info {
-  position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
-  background:rgba(20,20,23,.85); backdrop-filter:blur(8px);
-  border:1px solid var(--border2); border-radius:8px;
-  padding:8px 16px; font-size:12px; font-family:'DM Mono',monospace;
-  color:var(--muted2); white-space:nowrap;
+#lb-close:hover { background: rgba(255,255,255,.2); }
+#lb-info {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(20,20,23,.85); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
+  padding: 8px 18px; font-size: 12px; font-family: var(--font-mono);
+  color: rgba(255,255,255,.6); white-space: nowrap;
 }
 
-/* ─── STATS BAR ──────────────────────────────────────────────── */
-.stats-bar {
-  display:flex; gap:1px; background:var(--border); border-radius:10px;
-  overflow:hidden; margin-top:12px;
+/* ══════════════════════════════════════════════════════
+   ERROR + TOAST
+══════════════════════════════════════════════════════ */
+.error-box {
+  display: none; background: rgba(255,71,87,.06);
+  border: 1px solid rgba(255,71,87,.3); border-radius: var(--radius-sm);
+  padding: 10px 14px; margin-top: 12px;
+  font-size: 11px; font-family: var(--font-mono); color: #ff8a96;
+  white-space: pre-wrap; max-height: 100px; overflow-y: auto; line-height: 1.6;
 }
-.stat-item {
-  flex:1; background:var(--s1); padding:12px 14px; text-align:center;
+.toast {
+  position: fixed; bottom: 32px; right: 32px; z-index: 500;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 18px;
+  box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; transform: translateY(80px); opacity: 0;
+  transition: all .3s; pointer-events: none;
 }
-.stat-num { font-size:18px; font-weight:700; font-family:'Instrument Serif',serif; color:var(--text); line-height:1; }
-.stat-lbl { font-size:10px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em; }
+.toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.toast-icon { font-size: 16px; }
 
-/* ─── SPINNER ────────────────────────────────────────────────── */
-@keyframes spin { to { transform:rotate(360deg); } }
-.spinner {
-  width:14px; height:14px; border:2px solid rgba(8,8,9,.3);
-  border-top-color:rgba(8,8,9,.9); border-radius:50%;
-  animation:spin .6s linear infinite; display:inline-block; flex-shrink:0;
-}
+/* ══════════════════════════════════════════════════════
+   MISC UTILS
+══════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); }
+.tag-success { background: rgba(46,204,113,.1); color: var(--success); border: 1px solid rgba(46,204,113,.2); }
+.tag-warn    { background: rgba(255,165,2,.1);  color: var(--warn); border: 1px solid rgba(255,165,2,.2); }
+.tag-danger  { background: rgba(255,71,87,.1);  color: var(--danger); border: 1px solid rgba(255,71,87,.2); }
+.tag-muted   { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
 
-/* ─── SCROLLBAR GLOBAL ───────────────────────────────────────── */
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
-@media (max-width:900px) {
-  .main { grid-template-columns:1fr; }
-  .preview-compare { grid-template-columns:1fr; }
-}
-@media (max-width:600px) {
-  .wrap { padding:0 16px; }
-  .api-bar { flex-direction:column; align-items:stretch; }
+@media (max-width: 860px) {
+  .wizard { grid-template-columns: 1fr; }
+  .step-nav { position: static; height: auto; }
+  .step-content { padding: 24px 20px; }
+  .preview-compare { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }
 </style>
 </head>
-<body>
+<body data-theme="dark">
 
-<!-- ── LIGHTBOX ───────────────────────────────────────────────── -->
+<!-- LIGHTBOX -->
 <div id="lightbox">
-  <div id="lightbox-close" onclick="closeLightbox()">✕</div>
-  <img id="lightbox-img" src="" alt="">
-  <div id="lightbox-info"></div>
+  <div id="lb-close" onclick="closeLightbox()">✕</div>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-info"></div>
 </div>
 
-<div class="wrap">
-
-<!-- ── HEADER ─────────────────────────────────────────────────── -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">🍌</div>
-    <div class="logo-text">
-      <h1>Nano Banana <em>Localizer</em></h1>
-      <p>Screenshot Translation · Powered by Gemini Vision</p>
+<!-- DOWNLOAD MODAL -->
+<div class="modal-overlay" id="dlModal">
+  <div class="modal">
+    <h3>Download Format</h3>
+    <p>Choose image format for <span id="dlModalName" style="color:var(--accent);font-weight:600"></span></p>
+    <div class="format-pick">
+      <div class="format-opt selected" id="fopt-png" onclick="selectFmt('png')">
+        <div class="format-opt-icon">🖼</div>
+        <div class="format-opt-name">PNG</div>
+        <div class="format-opt-desc">Lossless · Original size</div>
+      </div>
+      <div class="format-opt" id="fopt-jpg" onclick="selectFmt('jpg')">
+        <div class="format-opt-icon">📷</div>
+        <div class="format-opt-name">JPG</div>
+        <div class="format-opt-desc">Compressed · Matched size</div>
+      </div>
     </div>
-  </div>
-  <div class="header-right">
-    <div class="pill" id="modelPill">model: —</div>
-  </div>
-</header>
-
-<!-- ── API KEY ─────────────────────────────────────────────────── -->
-<div class="api-bar">
-  <label>🔑 API Key</label>
-  <div class="api-input-wrap" style="display:flex;align-items:center;gap:0;flex:1;min-width:260px">
-    <span class="key-icon" style="position:static;transform:none;padding:0 8px 0 14px;font-size:14px">🔐</span>
-    <input type="password" id="apiKeyPrefix" value="AIzaSyBSDOE9YwUCcMssg9s-J1ZBcCVBGfZEc"
-      style="flex:1;padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-right:none;
-      border-radius:var(--radius-sm) 0 0 var(--radius-sm);color:var(--muted);
-      font-family:DM Mono,monospace;font-size:13px;outline:none;min-width:0"
-      spellcheck="false" autocomplete="off" readonly
-      title="Stored key prefix (read-only). Only enter the last 2 characters on the right.">
-    <input type="text" id="apiKeySuffix" placeholder="##" maxlength="8"
-      style="width:52px;padding:10px 8px;background:var(--s2);border:1px solid var(--border2);border-left:2px solid var(--lime);
-      border-radius:0 var(--radius-sm) var(--radius-sm) 0;color:var(--lime);
-      font-family:DM Mono,monospace;font-size:13px;font-weight:700;outline:none;text-align:center"
-      spellcheck="false" autocomplete="off"
-      title="Type the last 2 characters of your API key here">
-  </div>
-  <div class="key-status">
-    <div class="key-dot" id="keyDot"></div>
-    <span id="keyText" style="color:var(--muted);font-size:12px">Enter last 2 chars</span>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDlModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmDownload()">⬇ Download</button>
+    </div>
   </div>
 </div>
 
-<!-- ── MAIN ────────────────────────────────────────────────────── -->
-<div class="main">
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✓</span><span id="toastMsg"></span></div>
 
-  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
-  <div class="sidebar">
+<!-- APP -->
+<div class="app-shell">
 
-    <!-- UPLOAD -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-label"><div class="dot-accent"></div>Screenshots</div>
-        <button class="lang-select-all" onclick="clearFiles()" id="clearBtn" style="display:none">Clear all</button>
-      </div>
-      <div class="dropzone" id="dropzone">
-        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/gif">
-        <span class="dz-icon">🖼️</span>
-        <div class="dz-title">Drop images here</div>
-        <div class="dz-sub">or click to browse &nbsp;·&nbsp; <strong>PNG · JPG · WEBP</strong></div>
-      </div>
-      <div id="fileList"></div>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-emoji">🍌</div>
+      Nano <em>Banana</em> Localizer
     </div>
+    <div class="top-right">
+      <div class="theme-switcher">
+        <button class="theme-btn active" data-theme="dark"   onclick="setTheme('dark')"   title="Dark">🌑</button>
+        <button class="theme-btn"        data-theme="light"  onclick="setTheme('light')"  title="Light">☀️</button>
+        <button class="theme-btn"        data-theme="sunset" onclick="setTheme('sunset')" title="Sunset">🌅</button>
+        <button class="theme-btn"        data-theme="arctic" onclick="setTheme('arctic')" title="Arctic">🧊</button>
+        <button class="theme-btn"        data-theme="mocha"  onclick="setTheme('mocha')"  title="Mocha">☕</button>
+      </div>
+      <div class="model-badge" id="modelBadge">model: —</div>
+    </div>
+  </div>
 
-    <!-- LANGUAGES -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-label"><div class="dot-accent"></div>Target Languages</div>
-        <div style="display:flex;gap:8px">
-          <button class="lang-select-all" onclick="toggleAllLangs(true)">All</button>
-          <button class="lang-select-all" onclick="toggleAllLangs(false)">None</button>
+  <!-- WIZARD -->
+  <div class="wizard">
+
+    <!-- STEP NAV -->
+    <nav class="step-nav">
+      <div class="step-nav-inner">
+        <div class="step-nav-title">Workflow</div>
+        <div class="step-item active" id="snav-1" onclick="goStep(1)">
+          <div class="step-num"><span class="step-num-inner">1</span></div>
+          <div class="step-label"><strong>API Key</strong><span>Connect to Gemini</span></div>
+        </div>
+        <div class="step-item" id="snav-2" onclick="goStep(2)">
+          <div class="step-num"><span class="step-num-inner">2</span></div>
+          <div class="step-label"><strong>Screenshots</strong><span>Upload images</span></div>
+        </div>
+        <div class="step-item" id="snav-3" onclick="goStep(3)">
+          <div class="step-num"><span class="step-num-inner">3</span></div>
+          <div class="step-label"><strong>Languages</strong><span>Choose targets</span></div>
+        </div>
+        <div class="step-item" id="snav-4" onclick="goStep(4)">
+          <div class="step-num"><span class="step-num-inner">4</span></div>
+          <div class="step-label"><strong>Prompt</strong><span>Review & edit</span></div>
+        </div>
+        <div class="step-item" id="snav-5" onclick="goStep(5)">
+          <div class="step-num"><span class="step-num-inner">5</span></div>
+          <div class="step-label"><strong>Translate</strong><span>Run localization</span></div>
         </div>
       </div>
-      <div class="lang-grid" id="langGrid"></div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
-        <span id="langCount">0</span> language(s) selected
-      </div>
-    </div>
+    </nav>
 
-    <!-- FORMAT -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-label"><div class="dot-accent"></div>Output Format</div>
-      </div>
-      <div class="format-row">
-        <button class="fmt-btn active" id="fmt-png" onclick="setFormat('png')">PNG</button>
-        <button class="fmt-btn" id="fmt-jpg" onclick="setFormat('jpg')">JPG</button>
-        <button class="fmt-btn" id="fmt-both" onclick="setFormat('both')">Both</button>
-      </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6">
-        PNG = lossless · JPG = smaller files · Both = download each format
-      </div>
-    </div>
+    <!-- STEP CONTENT -->
+    <div class="step-content">
 
-    <!-- TRANSLATE -->
-    <div class="card">
-      <button class="btn-run" id="runBtn" onclick="run()" disabled>
-        <span id="runIcon">▶</span>
-        <span id="runLabel">Translate Screenshots</span>
-      </button>
-      <div class="progress-wrap" id="progressWrap" style="display:none">
+      <!-- ══ STEP 1 ══ -->
+      <div class="step-panel visible" id="panel-1">
+        <div class="step-header">
+          <h2>Connect to <em>Gemini</em></h2>
+          <p>Enter your Google AI Studio API key to get started. Your key is stored only in this browser session — never sent anywhere except Google's API.</p>
+        </div>
+        <div class="api-card">
+          <div style="margin-bottom:18px">
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Google AI Studio Key</div>
+            <div class="api-field">
+              <div class="api-field-prefix">🔐</div>
+              <input class="api-field-input" type="password" id="apiKeyPrefix"
+                value="AIzaSyBSDOE9YwUCcMssg9s-J1ZBcCVBGfZEc" readonly
+                placeholder="AIza…" spellcheck="false" autocomplete="off">
+              <input class="api-field-suffix" type="text" id="apiKeySuffix"
+                placeholder="##" maxlength="8" spellcheck="false" autocomplete="off"
+                title="Enter the last 2 characters of your key">
+            </div>
+            <div class="key-status">
+              <div class="key-dot" id="keyDot"></div>
+              <span id="keyText">Enter the last 2 characters of your key</span>
+            </div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:12px;color:var(--text3);line-height:1.7;">
+            💡 Get a free key at <strong style="color:var(--accent)">aistudio.google.com</strong> → API Keys. The free tier supports ~15 requests/min.
+          </div>
+        </div>
+        <div class="step-footer">
+          <div></div>
+          <button class="btn btn-primary btn-lg" id="step1Next" onclick="goStep(2)" disabled>
+            Continue → Screenshots
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 2 ══ -->
+      <div class="step-panel" id="panel-2">
+        <div class="step-header">
+          <h2>Upload <em>Screenshots</em></h2>
+          <p>Add the app or website screenshots you want to localize. PNG, JPG, and WebP supported. Multiple files allowed.</p>
+        </div>
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/gif">
+          <span class="dz-icon">🖼️</span>
+          <div class="dz-title">Drop screenshots here</div>
+          <div class="dz-sub">or click to browse &nbsp;·&nbsp; <strong>PNG · JPG · WebP</strong></div>
+        </div>
+        <div class="file-grid" id="fileGrid"></div>
+        <div class="step-footer">
+          <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-primary btn-lg" id="step2Next" onclick="goStep(3)" disabled>
+            Continue → Languages
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 3 ══ -->
+      <div class="step-panel" id="panel-3">
+        <div class="step-header">
+          <h2>Target <em>Languages</em></h2>
+          <p>Select all languages you want to generate. Each image × each language = one translation job.</p>
+        </div>
+        <div class="lang-toolbar">
+          <div class="lang-count-badge">
+            <strong id="langCountNum">0</strong> selected
+            <span style="color:var(--text3)"> · <span id="jobCountLabel">0</span> jobs total</span>
+          </div>
+          <div class="lang-actions">
+            <button class="btn btn-sm btn-secondary" onclick="toggleAllLangs(true)">Select All</button>
+            <button class="btn btn-sm btn-secondary" onclick="toggleAllLangs(false)">Clear</button>
+          </div>
+        </div>
+        <div class="lang-search-wrap">
+          <span class="lang-search-icon">🔍</span>
+          <input class="lang-search" type="text" id="langSearch" placeholder="Search languages…" oninput="buildLangGrid(this.value)">
+        </div>
+        <div class="lang-grid" id="langGrid"></div>
+        <div class="step-footer">
+          <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-primary btn-lg" id="step3Next" onclick="goStep(4)" disabled>
+            Continue → Prompt
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 4 ══ -->
+      <div class="step-panel" id="panel-4">
+        <div class="step-header">
+          <h2>Review <em>Prompt</em></h2>
+          <p>This is the exact instruction sent to Gemini Vision for each translation. Edit it to fine-tune tone, rules, or any specific requirements.</p>
+        </div>
+        <div class="prompt-wrap">
+          <div class="prompt-toolbar">
+            <div class="prompt-toolbar-left">
+              <span class="prompt-toolbar-label">Gemini Prompt</span>
+              <div class="prompt-vars">
+                <span class="var-badge">{LANG}</span>
+                <span class="var-badge">{W}</span>
+                <span class="var-badge">{H}</span>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-ghost" onclick="resetPrompt()">↺ Reset</button>
+          </div>
+          <textarea class="prompt-textarea" id="promptEditor" rows="14"></textarea>
+          <div class="prompt-footer">
+            <span class="prompt-hint">{LANG} = target language name · {W}/{H} = original pixel dimensions</span>
+            <span class="prompt-hint" id="promptCharCount">0 chars</span>
+          </div>
+        </div>
+        <div class="step-footer">
+          <button class="btn btn-ghost" onclick="goStep(3)">← Back</button>
+          <button class="btn btn-primary btn-lg" onclick="goStep(5)">
+            Continue → Translate
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 5 ══ -->
+      <div class="step-panel" id="panel-5">
+        <div class="step-header">
+          <h2>Translate <em>Screenshots</em></h2>
+          <p>Ready to run <strong id="jobCountFinal" style="color:var(--accent)">0 jobs</strong>. The process runs sequentially — each image is translated and text is extracted simultaneously.</p>
+        </div>
+
+        <div class="translate-summary">
+          <div class="summary-item">
+            <div class="summary-num accent" id="sumImages">0</div>
+            <div class="summary-lbl">Screenshots</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num accent" id="sumLangs">0</div>
+            <div class="summary-lbl">Languages</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num accent" id="sumJobs">0</div>
+            <div class="summary-lbl">Total Jobs</div>
+          </div>
+        </div>
+
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="progress-label" id="progressText"></div>
-      </div>
-      <div id="errorBox"></div>
-      <!-- stats -->
-      <div class="stats-bar" id="statsBar" style="display:none">
-        <div class="stat-item"><div class="stat-num" id="statDone">0</div><div class="stat-lbl">Done</div></div>
-        <div class="stat-item"><div class="stat-num" id="statFail">0</div><div class="stat-lbl">Failed</div></div>
-        <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
-      </div>
-    </div>
+        <div class="progress-label" id="progressLabel">Ready to start</div>
 
+        <div class="jobs-list" id="jobsList"></div>
+        <div class="error-box" id="errorBox"></div>
+
+        <div class="step-footer">
+          <button class="btn btn-ghost" id="step5Back" onclick="goStep(4)">← Back</button>
+          <button class="btn btn-primary btn-lg" id="runBtn" onclick="run()">
+            ▶ Start Translation
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /step-content -->
+  </div><!-- /wizard -->
+
+  <!-- RESULTS (appended after translate) -->
+  <div class="results-page" id="resultsPage">
+    <div style="padding: 40px 48px">
+
+      <div class="results-top">
+        <h2 id="resultsTitle">🌐 Translated Screenshots</h2>
+        <div class="results-actions">
+          <button class="btn btn-secondary" id="csvBtn" onclick="downloadCSV()" disabled>📄 Export CSV</button>
+          <button class="btn btn-primary" id="zipBtn" onclick="openZipDownload()" disabled>⬇ Download All</button>
+        </div>
+      </div>
+
+      <!-- Per-lang download row -->
+      <div class="lang-dl-row" id="langDlRow" style="display:none">
+        <span class="lang-dl-label">By Language →</span>
+        <div id="langDlBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="preview-panel" id="previewPanel" style="display:none">
+        <div class="preview-header" id="previewHeader"></div>
+        <div class="preview-body">
+          <div class="preview-compare" id="previewCompare"></div>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="results-grid-header">
+        <h3>All Results <span class="count-tag" id="resultCount">0</span></h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tag tag-success" id="doneTag" style="display:none">✓ <span id="doneNum">0</span> done</span>
+          <span class="tag tag-danger"  id="failTag" style="display:none">✗ <span id="failNum">0</span> failed</span>
+        </div>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+
+    </div>
   </div>
 
-  <!-- ─── CONTENT ────────────────────────────────────────────── -->
-  <div class="content" id="contentArea">
-    <div class="empty" id="emptyState">
-      <div class="empty-icon">🌐</div>
-      <h3>Nothing here yet</h3>
-      <p>Upload screenshots, choose target languages, then hit <strong>Translate</strong> to see localized previews here.</p>
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-</div><!-- /wrap -->
+</div><!-- /app-shell -->
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   DATA
-═══════════════════════════════════════════════════════════════ */
-const LANGUAGES = [
-  {code:"fr",name:"French",    flag:"🇫🇷"},
-  {code:"es",name:"Spanish",   flag:"🇪🇸"},
-  {code:"de",name:"German",    flag:"🇩🇪"},
-  {code:"it",name:"Italian",   flag:"🇮🇹"},
-  {code:"pt",name:"Portuguese",flag:"🇧🇷"},
-  {code:"ja",name:"Japanese",  flag:"🇯🇵"},
-  {code:"ko",name:"Korean",    flag:"🇰🇷"},
-  {code:"zh",name:"Chinese",   flag:"🇨🇳"},
-  {code:"ar",name:"Arabic",    flag:"🇸🇦"},
-  {code:"hi",name:"Hindi",     flag:"🇮🇳"},
-  {code:"gu",name:"Gujarati",  flag:"🇮🇳"},
-  {code:"nl",name:"Dutch",     flag:"🇳🇱"},
-  {code:"pl",name:"Polish",    flag:"🇵🇱"},
-  {code:"tr",name:"Turkish",   flag:"🇹🇷"},
-  {code:"sv",name:"Swedish",   flag:"🇸🇪"},
-  {code:"ru",name:"Russian",   flag:"🇷🇺"},
+/* ══════════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════════ */
+function setTheme(t) {
+  document.body.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+  localStorage.setItem('nb-theme', t);
+}
+(function(){ const t = localStorage.getItem('nb-theme') || 'dark'; setTheme(t); })();
+
+/* ══════════════════════════════════════════════════════
+   LANGUAGES
+══════════════════════════════════════════════════════ */
+const LANG_COMMON = [
+  {code:"fr",    name:"French",                  flag:"🇫🇷"},
+  {code:"es-ES", name:"Spanish (Spain)",          flag:"🇪🇸"},
+  {code:"de-DE", name:"German",                   flag:"🇩🇪"},
+  {code:"it-IT", name:"Italian",                  flag:"🇮🇹"},
+  {code:"pt-BR", name:"Portuguese (Brazil)",      flag:"🇧🇷"},
+  {code:"ja-JP", name:"Japanese",                 flag:"🇯🇵"},
+  {code:"ko-KR", name:"Korean",                   flag:"🇰🇷"},
+  {code:"zh-CN", name:"Chinese (Simplified)",     flag:"🇨🇳"},
+  {code:"ar",    name:"Arabic",                   flag:"🇸🇦"},
+  {code:"hi-IN", name:"Hindi",                    flag:"🇮🇳"},
+  {code:"gu",    name:"Gujarati",                 flag:"🇮🇳"},
+  {code:"ru",    name:"Russian",                  flag:"🇷🇺"},
 ];
+const LANG_EXTENDED = [
+  {code:"af",    name:"Afrikaans",               flag:"🇿🇦"},
+  {code:"sq",    name:"Albanian",                flag:"🇦🇱"},
+  {code:"am",    name:"Amharic",                 flag:"🇪🇹"},
+  {code:"hy-AM", name:"Armenian",                flag:"🇦🇲"},
+  {code:"az-AZ", name:"Azerbaijani",             flag:"🇦🇿"},
+  {code:"eu-ES", name:"Basque",                  flag:"🏴"},
+  {code:"be",    name:"Belarusian",              flag:"🇧🇾"},
+  {code:"bn-BD", name:"Bengali (Bangladesh)",    flag:"🇧🇩"},
+  {code:"bg",    name:"Bulgarian",               flag:"🇧🇬"},
+  {code:"my-MM", name:"Burmese",                 flag:"🇲🇲"},
+  {code:"ca",    name:"Catalan",                 flag:"🏴"},
+  {code:"zh-TW", name:"Chinese (Traditional)",   flag:"🇹🇼"},
+  {code:"zh-HK", name:"Chinese (Hong Kong)",     flag:"🇭🇰"},
+  {code:"hr",    name:"Croatian",                flag:"🇭🇷"},
+  {code:"cs-CZ", name:"Czech",                   flag:"🇨🇿"},
+  {code:"da-DK", name:"Danish",                  flag:"🇩🇰"},
+  {code:"nl-NL", name:"Dutch",                   flag:"🇳🇱"},
+  {code:"en",    name:"English",                 flag:"🇺🇸"},
+  {code:"en-AU", name:"English (Australia)",     flag:"🇦🇺"},
+  {code:"en-CA", name:"English (Canada)",        flag:"🇨🇦"},
+  {code:"en-GB", name:"English (UK)",            flag:"🇬🇧"},
+  {code:"en-IN", name:"English (India)",         flag:"🇮🇳"},
+  {code:"en-SG", name:"English (Singapore)",     flag:"🇸🇬"},
+  {code:"en-ZA", name:"English (South Africa)",  flag:"🇿🇦"},
+  {code:"et",    name:"Estonian",                flag:"🇪🇪"},
+  {code:"fil",   name:"Filipino",                flag:"🇵🇭"},
+  {code:"fi-FI", name:"Finnish",                 flag:"🇫🇮"},
+  {code:"fr-CA", name:"French (Canada)",         flag:"🇨🇦"},
+  {code:"fr-FR", name:"French (France)",         flag:"🇫🇷"},
+  {code:"gl-ES", name:"Galician",                flag:"🏴"},
+  {code:"ka-GE", name:"Georgian",                flag:"🇬🇪"},
+  {code:"el-GR", name:"Greek",                   flag:"🇬🇷"},
+  {code:"iw-IL", name:"Hebrew",                  flag:"🇮🇱"},
+  {code:"hu-HU", name:"Hungarian",               flag:"🇭🇺"},
+  {code:"is-IS", name:"Icelandic",               flag:"🇮🇸"},
+  {code:"id",    name:"Indonesian",              flag:"🇮🇩"},
+  {code:"kn-IN", name:"Kannada",                 flag:"🇮🇳"},
+  {code:"kk",    name:"Kazakh",                  flag:"🇰🇿"},
+  {code:"km-KH", name:"Khmer",                   flag:"🇰🇭"},
+  {code:"ky-KG", name:"Kyrgyz",                  flag:"🇰🇬"},
+  {code:"lo-LA", name:"Lao",                     flag:"🇱🇦"},
+  {code:"lv",    name:"Latvian",                 flag:"🇱🇻"},
+  {code:"lt",    name:"Lithuanian",              flag:"🇱🇹"},
+  {code:"mk-MK", name:"Macedonian",              flag:"🇲🇰"},
+  {code:"ms",    name:"Malay",                   flag:"🇲🇾"},
+  {code:"ms-MY", name:"Malay (Malaysia)",        flag:"🇲🇾"},
+  {code:"ml-IN", name:"Malayalam",               flag:"🇮🇳"},
+  {code:"mr-IN", name:"Marathi",                 flag:"🇮🇳"},
+  {code:"mn-MN", name:"Mongolian",               flag:"🇲🇳"},
+  {code:"ne-NP", name:"Nepali",                  flag:"🇳🇵"},
+  {code:"no-NO", name:"Norwegian",               flag:"🇳🇴"},
+  {code:"fa",    name:"Persian",                 flag:"🇮🇷"},
+  {code:"fa-AF", name:"Persian (Afghanistan)",   flag:"🇦🇫"},
+  {code:"fa-IR", name:"Persian (Iran)",          flag:"🇮🇷"},
+  {code:"fa-AE", name:"Persian (UAE)",           flag:"🇦🇪"},
+  {code:"pl-PL", name:"Polish",                  flag:"🇵🇱"},
+  {code:"pt-PT", name:"Portuguese (Portugal)",   flag:"🇵🇹"},
+  {code:"pa",    name:"Punjabi",                 flag:"🇮🇳"},
+  {code:"ro",    name:"Romanian",                flag:"🇷🇴"},
+  {code:"rm",    name:"Romansh",                 flag:"🇨🇭"},
+  {code:"sr",    name:"Serbian",                 flag:"🇷🇸"},
+  {code:"si-LK", name:"Sinhala",                 flag:"🇱🇰"},
+  {code:"sk",    name:"Slovak",                  flag:"🇸🇰"},
+  {code:"sl",    name:"Slovenian",               flag:"🇸🇮"},
+  {code:"es-419",name:"Spanish (Latin America)", flag:"🌎"},
+  {code:"es-US", name:"Spanish (US)",            flag:"🇺🇸"},
+  {code:"sw",    name:"Swahili",                 flag:"🇹🇿"},
+  {code:"sv-SE", name:"Swedish",                 flag:"🇸🇪"},
+  {code:"ta-IN", name:"Tamil",                   flag:"🇮🇳"},
+  {code:"te-IN", name:"Telugu",                  flag:"🇮🇳"},
+  {code:"th",    name:"Thai",                    flag:"🇹🇭"},
+  {code:"tr-TR", name:"Turkish",                 flag:"🇹🇷"},
+  {code:"uk",    name:"Ukrainian",               flag:"🇺🇦"},
+  {code:"ur",    name:"Urdu",                    flag:"🇵🇰"},
+  {code:"vi",    name:"Vietnamese",              flag:"🇻🇳"},
+  {code:"zu",    name:"Zulu",                    flag:"🇿🇦"},
+];
+const ALL_LANGS = [...LANG_COMMON, ...LANG_EXTENDED];
 
 const MODELS = [
   "gemini-3.1-flash-image-preview",
-  "gemini-3-pro-image-preview",
   "gemini-2.5-flash-preview-05-20",
   "gemini-2.5-flash-image",
   "gemini-2.0-flash-preview-image-generation",
   "gemini-2.0-flash-exp",
 ];
 
+const DEFAULT_PROMPT = `You are an expert UI/UX localization engineer with pixel-perfect precision.
 
-let uploadedFiles = [];   // {id, file, name, size, w, h, dataUrl}
-let selectedLangs = new Set();
-let outputFormat  = "png";
-let resultsData   = [];   // {id, imgId, lang, pngUrl, jpgUrl, name}
-let statDone=0, statFail=0, statTotal=0;
-
-/* ═══════════════════════════════════════════════════════════════
-   INIT — build language grid
-═══════════════════════════════════════════════════════════════ */
-const langGrid = document.getElementById("langGrid");
-LANGUAGES.forEach(l => {
-  const btn = document.createElement("button");
-  btn.className = "lang-btn";
-  btn.dataset.code = l.code;
-  btn.innerHTML = `<span class="lang-flag">${l.flag}</span>${l.name}`;
-  btn.onclick = () => toggleLang(l.code, btn);
-  langGrid.appendChild(btn);
-});
-
-function toggleLang(code, btn) {
-  if (selectedLangs.has(code)) { selectedLangs.delete(code); btn.classList.remove("active"); }
-  else { selectedLangs.add(code); btn.classList.add("active"); }
-  document.getElementById("langCount").textContent = selectedLangs.size;
-  checkReady();
-}
-function toggleAllLangs(on) {
-  langGrid.querySelectorAll(".lang-btn").forEach(btn => {
-    const code = btn.dataset.code;
-    if (on) { selectedLangs.add(code); btn.classList.add("active"); }
-    else    { selectedLangs.delete(code); btn.classList.remove("active"); }
-  });
-  document.getElementById("langCount").textContent = selectedLangs.size;
-  checkReady();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   FORMAT
-═══════════════════════════════════════════════════════════════ */
-function setFormat(f) {
-  outputFormat = f;
-  ["png","jpg","both"].forEach(x => document.getElementById("fmt-"+x).classList.toggle("active", x===f));
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   API KEY
-═══════════════════════════════════════════════════════════════ */
-function getFullApiKey() {
-  const prefix = document.getElementById("apiKeyPrefix").value.trim();
-  const suffix = document.getElementById("apiKeySuffix").value.trim();
-  return prefix + suffix;
-}
-
-document.getElementById("apiKeySuffix").addEventListener("input", function() {
-  const full = getFullApiKey();
-  const dot = document.getElementById("keyDot");
-  const txt = document.getElementById("keyText");
-  if (this.value.trim().length >= 2) {
-    dot.className = "key-dot ok"; txt.textContent = "Key ready"; txt.style.color = "var(--success)";
-  } else if (this.value.trim().length > 0) {
-    dot.className = "key-dot err"; txt.textContent = "Need 2 chars"; txt.style.color = "var(--warn)";
-  } else {
-    dot.className = "key-dot"; txt.textContent = "Enter last 2 chars"; txt.style.color = "var(--muted)";
-  }
-  checkReady();
-});
-
-/* ═══════════════════════════════════════════════════════════════
-   FILE UPLOAD
-═══════════════════════════════════════════════════════════════ */
-const dropzone  = document.getElementById("dropzone");
-const fileInput = document.getElementById("fileInput");
-
-dropzone.addEventListener("dragover",  e => { e.preventDefault(); dropzone.classList.add("hover"); });
-dropzone.addEventListener("dragleave", () => dropzone.classList.remove("hover"));
-dropzone.addEventListener("drop", e => {
-  e.preventDefault(); dropzone.classList.remove("hover");
-  handleFiles(e.dataTransfer.files);
-});
-fileInput.addEventListener("change", () => handleFiles(fileInput.files));
-
-async function handleFiles(files) {
-  for (const f of files) {
-    if (!f.type.startsWith("image/")) continue;
-    const id = crypto.randomUUID();
-    const dataUrl = await readDataUrl(f);
-    const {w,h} = await imgDimensions(dataUrl);
-    uploadedFiles.push({
-      id, file:f, name:f.name,
-      size: formatBytes(f.size), w, h, dataUrl
-    });
-  }
-  renderFileList();
-  checkReady();
-  refreshContentArea();
-}
-
-function readDataUrl(file) {
-  return new Promise(res => {
-    const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
-  });
-}
-function imgDimensions(dataUrl) {
-  return new Promise(res => {
-    const img = new Image();
-    img.onload = () => res({w:img.naturalWidth, h:img.naturalHeight});
-    img.src = dataUrl;
-  });
-}
-function formatBytes(b) {
-  if (b<1024) return b+"B";
-  if (b<1048576) return (b/1024).toFixed(0)+"KB";
-  return (b/1048576).toFixed(1)+"MB";
-}
-
-function renderFileList() {
-  const list = document.getElementById("fileList");
-  list.innerHTML = "";
-  document.getElementById("clearBtn").style.display = uploadedFiles.length ? "" : "none";
-
-  uploadedFiles.forEach((f,i) => {
-    const item = document.createElement("div");
-    item.className = "file-item";
-    item.dataset.id = f.id;
-    item.onclick = () => showPreviewForFile(f.id);
-    item.innerHTML = `
-      <img class="file-thumb" src="${f.dataUrl}" alt="">
-      <div class="file-info">
-        <div class="file-name" title="${f.name}">${f.name}</div>
-        <div class="file-meta">${f.w}×${f.h}px · ${f.size}</div>
-      </div>
-      <button class="file-remove" onclick="removeFile('${f.id}',event)" title="Remove">✕</button>`;
-    list.appendChild(item);
-  });
-}
-
-function removeFile(id, e) {
-  e.stopPropagation();
-  uploadedFiles = uploadedFiles.filter(f => f.id !== id);
-  renderFileList();
-  checkReady();
-  refreshContentArea();
-}
-
-function clearFiles() {
-  uploadedFiles = [];
-  renderFileList();
-  checkReady();
-  refreshContentArea();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   READY CHECK
-═══════════════════════════════════════════════════════════════ */
-function checkReady() {
-  const suffix = document.getElementById("apiKeySuffix").value.trim();
-  const ok = suffix.length >= 2
-          && uploadedFiles.length > 0
-          && selectedLangs.size > 0;
-  document.getElementById("runBtn").disabled = !ok;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   CONTENT AREA — PREVIEW
-═══════════════════════════════════════════════════════════════ */
-function refreshContentArea() {
-  const area = document.getElementById("contentArea");
-  document.getElementById("emptyState")?.remove();
-
-  if (!uploadedFiles.length && !resultsData.length) {
-    area.innerHTML = `<div class="empty" id="emptyState">
-      <div class="empty-icon">🌐</div>
-      <h3>Nothing here yet</h3>
-      <p>Upload screenshots, choose target languages, then hit <strong>Translate</strong>.</p>
-    </div>`;
-    return;
-  }
-
-  // preview panel
-  let preview = document.getElementById("previewPanel");
-  if (!preview) {
-    preview = document.createElement("div");
-    preview.className = "preview-panel"; preview.id = "previewPanel";
-    area.prepend(preview);
-  }
-  renderPreview(uploadedFiles[0]?.id);
-}
-
-let activePreviewFileId = null;
-let activePreviewLang = "original";
-
-function renderPreview(fileId) {
-  if (!fileId && uploadedFiles.length) fileId = uploadedFiles[0].id;
-  if (!fileId) return;
-  activePreviewFileId = fileId;
-  const file = uploadedFiles.find(f => f.id === fileId);
-  if (!file) return;
-
-  const panel = document.getElementById("previewPanel");
-  if (!panel) return;
-
-  // tabs = original + all langs that have results for this file
-  const doneLangs = resultsData
-    .filter(r => r.imgId === fileId)
-    .map(r => r.lang);
-
-  const tabs = ["original", ...doneLangs];
-
-  const tabHtml = tabs.map(t => {
-    const lang = LANGUAGES.find(l => l.name === t);
-    const label = t === "original" ? "📄 Original" : (lang?.flag||"")+" "+t;
-    return `<button class="ptab ${t === activePreviewLang ? "active" : ""}" onclick="switchPreviewTab('${fileId}','${t}')">${label}</button>`;
-  }).join("");
-
-  // file tabs row (all uploaded files)
-  const fileTabHtml = uploadedFiles.map(f =>
-    `<button class="ptab ${f.id === fileId ? "active" : ""}" onclick="switchPreviewFile('${f.id}')"
-      style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${f.name}">${f.name}</button>`
-  ).join("");
-
-  const res = resultsData.find(r => r.imgId === fileId && r.lang === activePreviewLang);
-  const showOriginal = activePreviewLang === "original" || !res;
-
-  const imgSrc = showOriginal ? file.dataUrl : (res?.pngUrl || res?.jpgUrl || file.dataUrl);
-  const translatedSrc = res ? (res.pngUrl || res.jpgUrl) : null;
-
-  panel.innerHTML = `
-    <div class="preview-header">
-      <div class="preview-tabs" style="flex-direction:column;gap:4px">
-        <div style="display:flex;gap:2px;overflow-x:auto">${fileTabHtml}</div>
-        <div style="display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--border);padding-top:4px">${tabHtml}</div>
-      </div>
-    </div>
-    <div class="preview-body">
-      <div class="preview-compare">
-        <div class="compare-side">
-          <div class="compare-label"><span class="badge-orig">◈ Original</span> &nbsp; ${file.w}×${file.h}px · ${file.size}</div>
-          <img class="compare-img" src="${file.dataUrl}" alt="original" onclick="openLightbox('${file.dataUrl}','${file.name} (original)')">
-        </div>
-        <div class="compare-side">
-          <div class="compare-label"><span class="badge-trans">◈ Translated</span> ${translatedSrc ? "— "+activePreviewLang : ""}</div>
-          ${translatedSrc
-            ? `<img class="compare-img" src="${translatedSrc}" alt="translated" style="cursor:zoom-in" onclick="openLightbox('${translatedSrc}','${file.name} — ${activePreviewLang}')">`
-            : `<div class="compare-placeholder"><span style="font-size:24px;opacity:.2">🌐</span><span>Select a language tab to compare</span></div>`
-          }
-        </div>
-      </div>
-    </div>`;
-}
-
-function switchPreviewFile(fileId) {
-  activePreviewLang = "original";
-  renderPreview(fileId);
-}
-function switchPreviewTab(fileId, lang) {
-  activePreviewLang = lang;
-  renderPreview(fileId);
-}
-function showPreviewForFile(id) {
-  document.querySelectorAll(".file-item").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
-  activePreviewLang = "original";
-  renderPreview(id);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LIGHTBOX
-═══════════════════════════════════════════════════════════════ */
-function openLightbox(src, label) {
-  document.getElementById("lightbox-img").src = src;
-  document.getElementById("lightbox-info").textContent = label;
-  document.getElementById("lightbox").classList.add("open");
-}
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("open");
-}
-document.getElementById("lightbox").addEventListener("click", e => {
-  if (e.target === document.getElementById("lightbox")) closeLightbox();
-});
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
-
-/* ═══════════════════════════════════════════════════════════════
-   EXTRACT TEXT (text-only Gemini call, fast & cheap)
-═══════════════════════════════════════════════════════════════ */
-async function extractTextFromImage(apiKey, dataUrl, langName) {
-  const base64 = dataUrl.split(",")[1];
-  const mime   = dataUrl.split(";")[0].split(":")[1];
-  const prompt = `Extract ALL visible text from this screenshot exactly as it appears, then translate each piece into ${langName}.
-
-Format your response as:
-ORIGINAL → TRANSLATED
-(one per line, covering every text element in the image top-to-bottom, left-to-right)
-
-Be exhaustive — include every button, label, heading, body text, placeholder, and status message.`;
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
-          generationConfig:{maxOutputTokens:1024,temperature:0.1}
-        })
-      }
-    );
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  } catch(e) {
-    return ""; // non-fatal, just skip the text panel
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   GEMINI API
-═══════════════════════════════════════════════════════════════ */
-async function callGemini(apiKey, dataUrl, langName, origW, origH, origFile) {
-  const base64 = dataUrl.split(",")[1];
-  const mime   = dataUrl.split(";")[0].split(":")[1];
-
-  const prompt = `You are an expert UI/UX localization engineer with pixel-perfect precision.
-
-INPUT: A screenshot of an app, game or website (${origW}x${origH} pixels).
-TARGET LANGUAGE: ${langName}
+INPUT: A screenshot of an app, game or website ({W}x{H} pixels).
+TARGET LANGUAGE: {LANG}
 
 === STEP 1 — TEXT INVENTORY ===
 Mentally catalogue EVERY piece of visible text in the image:
@@ -984,13 +1297,13 @@ Mentally catalogue EVERY piece of visible text in the image:
 - Timestamps, dates, numbers with units
 
 === STEP 2 — TRANSLATION ===
-Translate ALL catalogued text into natural, fluent ${langName}.
+Translate ALL catalogued text into natural, fluent {LANG}.
 Use terminology native speakers actually use in software interfaces.
 Do NOT do word-for-word translation — use natural expressions.
 
 === STEP 3 — RENDER ===
 Produce the output image with these ABSOLUTE rules:
-1. Output must be EXACTLY ${origW}x${origH} pixels - no cropping, no padding, no letterboxing
+1. Output must be EXACTLY {W}x{H} pixels — no cropping, no padding, no letterboxing
 2. Every translated text must appear in the EXACT same position as the original
 3. Font style, size, weight, and color must be IDENTICAL to the original
 4. All icons, images, illustrations, decorations stay UNCHANGED
@@ -999,342 +1312,772 @@ Produce the output image with these ABSOLUTE rules:
 7. NO watermarks, NO borders, NO annotations added
 8. If translated text is longer, reduce font size slightly to fit — never break layout
 
-The final image must look like the app was originally designed in ${langName}.
+The final image must look like the app was originally designed in {LANG}.
 Return ONLY the final translated image, nothing else.`;
 
-  const body = {
-    contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: base64 } }] }],
-    generationConfig: { response_modalities: ["TEXT","IMAGE"] }
-  };
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let uploadedFiles = [];
+let selectedLangs = new Set();
+let resultsData   = [];
+let activePreviewFileId = null;
+let activePreviewLang   = "original";
+let currentStep = 1;
+let dlTarget = null; // {r: resultEntry} or {lang: langName} or 'all'
+let dlFormat  = "png";
 
-  let lastError = null;
-  for (const MODEL of MODELS) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+document.getElementById("promptEditor").value = DEFAULT_PROMPT;
+updatePromptCount();
+document.getElementById("promptEditor").addEventListener("input", updatePromptCount);
+buildLangGrid("");
+
+function updatePromptCount() {
+  const txt = document.getElementById("promptEditor").value;
+  document.getElementById("promptCharCount").textContent = txt.length.toLocaleString() + " chars";
+}
+function resetPrompt() {
+  document.getElementById("promptEditor").value = DEFAULT_PROMPT;
+  updatePromptCount();
+}
+
+/* ══════════════════════════════════════════════════════
+   WIZARD NAVIGATION
+══════════════════════════════════════════════════════ */
+function goStep(n) {
+  if (n < 1 || n > 5) return;
+  // Validate forward navigation
+  if (n > 1 && !canProceedFrom(currentStep)) return;
+
+  // Update nav
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById("snav-" + i);
+    el.classList.toggle("active", i === n);
+    el.classList.toggle("completed", i < n);
+    el.querySelector(".step-num-inner").textContent = i < n ? "" : i;
+    if (i < n) el.querySelector(".step-num-inner").textContent = "✓";
+    else if (i === n) el.querySelector(".step-num-inner").textContent = i;
+    else el.querySelector(".step-num-inner").textContent = i;
+  }
+
+  document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("visible"));
+  document.getElementById("panel-" + n).classList.add("visible");
+  currentStep = n;
+
+  if (n === 5) updateTranslateSummary();
+}
+
+function canProceedFrom(step) {
+  if (step === 1) return document.getElementById("apiKeySuffix").value.trim().length >= 2;
+  if (step === 2) return uploadedFiles.length > 0;
+  if (step === 3) return selectedLangs.size > 0;
+  return true;
+}
+
+function checkStep1() {
+  const ok = document.getElementById("apiKeySuffix").value.trim().length >= 2;
+  document.getElementById("step1Next").disabled = !ok;
+}
+function checkStep2() {
+  document.getElementById("step2Next").disabled = uploadedFiles.length === 0;
+}
+function checkStep3() {
+  document.getElementById("step3Next").disabled = selectedLangs.size === 0;
+  // update job count label
+  document.getElementById("langCountNum").textContent = selectedLangs.size;
+  document.getElementById("jobCountLabel").textContent = uploadedFiles.length * selectedLangs.size;
+}
+
+function updateTranslateSummary() {
+  const n = uploadedFiles.length, l = selectedLangs.size, j = n * l;
+  document.getElementById("sumImages").textContent = n;
+  document.getElementById("sumLangs").textContent = l;
+  document.getElementById("sumJobs").textContent = j;
+  document.getElementById("jobCountFinal").textContent = j + " job" + (j !== 1 ? "s" : "");
+
+  // Build job list
+  const list = document.getElementById("jobsList");
+  list.innerHTML = "";
+  for (const f of uploadedFiles) {
+    for (const lang of selectedLangs) {
+      const langObj = ALL_LANGS.find(l => l.name === lang || l.code === lang);
+      const item = document.createElement("div");
+      item.className = "job-item";
+      item.id = "ji_" + f.id + "_" + lang.replace(/\W/g,"_");
+      item.innerHTML = `
+        <img class="job-thumb" src="${f.dataUrl}" alt="">
+        <div class="job-info">
+          <div class="job-name">${f.name}</div>
+          <div class="job-lang">${langObj?.flag||"🌐"} ${lang}</div>
+        </div>
+        <div class="job-status"><span class="job-idle">—</span></div>`;
+      list.appendChild(item);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   API KEY
+══════════════════════════════════════════════════════ */
+function getFullApiKey() {
+  return document.getElementById("apiKeyPrefix").value.trim()
+       + document.getElementById("apiKeySuffix").value.trim();
+}
+document.getElementById("apiKeySuffix").addEventListener("input", function() {
+  const dot = document.getElementById("keyDot"), txt = document.getElementById("keyText");
+  if (this.value.trim().length >= 2) {
+    dot.className = "key-dot ok"; txt.textContent = "Key ready — you're good to go";
+    txt.style.color = "var(--success)";
+  } else if (this.value.trim().length > 0) {
+    dot.className = "key-dot err"; txt.textContent = "Need at least 2 characters";
+    txt.style.color = "var(--warn)";
+  } else {
+    dot.className = "key-dot"; txt.textContent = "Enter the last 2 characters of your key";
+    txt.style.color = "var(--text3)";
+  }
+  checkStep1();
+});
+
+/* ══════════════════════════════════════════════════════
+   FILE UPLOAD
+══════════════════════════════════════════════════════ */
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("hover"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("hover"));
+dropzone.addEventListener("drop", e => { e.preventDefault(); dropzone.classList.remove("hover"); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener("change", () => handleFiles(fileInput.files));
+
+async function handleFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith("image/")) continue;
+    if (uploadedFiles.some(u => u.name === f.name && u.file.size === f.size)) continue; // dedupe
+    const id = crypto.randomUUID();
+    const dataUrl = await readDataUrl(f);
+    const {w,h} = await imgDimensions(dataUrl);
+    uploadedFiles.push({ id, file:f, name:f.name, size:formatBytes(f.size), w, h, dataUrl });
+  }
+  renderFileGrid(); checkStep2(); checkStep3();
+}
+function readDataUrl(f) {
+  return new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(f); });
+}
+function imgDimensions(dataUrl) {
+  return new Promise(r => { const i = new Image(); i.onload = () => r({w:i.naturalWidth,h:i.naturalHeight}); i.src = dataUrl; });
+}
+function formatBytes(b) {
+  if (b<1024) return b+"B"; if (b<1048576) return (b/1024).toFixed(0)+"KB"; return (b/1048576).toFixed(1)+"MB";
+}
+
+function renderFileGrid() {
+  const grid = document.getElementById("fileGrid");
+  grid.innerHTML = "";
+  uploadedFiles.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "file-card"; card.dataset.id = f.id;
+    card.innerHTML = `
+      <img class="file-card-img" src="${f.dataUrl}" alt="">
+      <div class="file-card-body">
+        <div class="file-card-name" title="${f.name}">${f.name}</div>
+        <div class="file-card-meta">${f.w}×${f.h}px · ${f.size}</div>
+      </div>
+      <button class="file-card-remove" onclick="removeFile('${f.id}',event)" title="Remove">✕</button>`;
+    grid.appendChild(card);
+  });
+}
+function removeFile(id, e) {
+  if (e) e.stopPropagation();
+  resultsData = resultsData.filter(r => r.imgId !== id);
+  uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+  if (activePreviewFileId === id) activePreviewFileId = uploadedFiles[0]?.id || null;
+  renderFileGrid(); checkStep2(); checkStep3();
+  document.querySelectorAll(`.result-card[data-imgid="${id}"]`).forEach(c => c.remove());
+  updateResultsPage();
+}
+
+/* ══════════════════════════════════════════════════════
+   LANGUAGES
+══════════════════════════════════════════════════════ */
+function buildLangGrid(q) {
+  const grid = document.getElementById("langGrid");
+  grid.innerHTML = "";
+  const lq = (q||"").toLowerCase();
+
+  function addSection(label, langs) {
+    const filtered = langs.filter(l => !lq || l.name.toLowerCase().includes(lq) || l.code.toLowerCase().includes(lq));
+    if (!filtered.length) return;
+    if (!lq) {
+      const hdr = document.createElement("div");
+      hdr.className = "lang-section-hdr"; hdr.textContent = label;
+      grid.appendChild(hdr);
+    }
+    filtered.forEach(l => {
+      const chip = document.createElement("div");
+      chip.className = "lang-chip" + (selectedLangs.has(l.code) ? " active" : "");
+      chip.dataset.code = l.code;
+      chip.title = l.name + " (" + l.code + ")";
+      chip.innerHTML = `<span class="flag">${l.flag}</span><span class="lname">${l.name}</span><span class="lcode">${l.code}</span>`;
+      chip.onclick = () => { toggleLang(l.code, chip); };
+      grid.appendChild(chip);
+    });
+  }
+  if (lq) { addSection("", ALL_LANGS); } else { addSection("Common", LANG_COMMON); addSection("Extended", LANG_EXTENDED); }
+}
+function toggleLang(code, el) {
+  if (selectedLangs.has(code)) { selectedLangs.delete(code); el.classList.remove("active"); }
+  else { selectedLangs.add(code); el.classList.add("active"); }
+  checkStep3();
+}
+function toggleAllLangs(on) {
+  ALL_LANGS.forEach(l => { if (on) selectedLangs.add(l.code); else selectedLangs.delete(l.code); });
+  buildLangGrid(document.getElementById("langSearch").value);
+  checkStep3();
+}
+
+/* ══════════════════════════════════════════════════════
+   GEMINI — TEXT EXTRACTION
+══════════════════════════════════════════════════════ */
+async function extractText(apiKey, dataUrl, langName) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+
+  // Step A: extract original English text
+  const promptOrig = `List ALL visible text in this screenshot, exactly as written, one item per line. Be exhaustive. Do NOT translate, do NOT add commentary. Just the text strings.`;
+  // Step B: extract translated text
+  const promptTrans = `List ALL visible text in this screenshot (which is a localized/translated version), one item per line. Be exhaustive.`;
+
+  const call = async (prompt) => {
     try {
-      const res = await fetch(url, {
-        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        { method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
+            generationConfig:{maxOutputTokens:1024,temperature:0.1}}) }
+      );
+      const d = await res.json();
+      return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    } catch { return ""; }
+  };
+  return call;
+}
+
+/* Extract orig text from original image */
+async function extractOriginalText(apiKey, dataUrl) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+  const prompt = `List ALL visible text in this screenshot exactly as written, one string per line. Be completely exhaustive — include every button, label, title, body text, placeholder, error, badge, footer. Output ONLY the text strings, no numbering, no commentary.`;
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      { method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
+          generationConfig:{maxOutputTokens:800,temperature:0.1}}) }
+    );
+    const d = await res.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  } catch { return ""; }
+}
+
+/* Extract translated text from translated image */
+async function extractTranslatedText(apiKey, dataUrl, langName) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+  const prompt = `This is a ${langName} localized screenshot. List ALL visible text exactly as it appears, one string per line. Be completely exhaustive. Output ONLY the text strings.`;
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      { method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
+          generationConfig:{maxOutputTokens:800,temperature:0.1}}) }
+    );
+    const d = await res.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  } catch { return ""; }
+}
+
+/* ══════════════════════════════════════════════════════
+   GEMINI — IMAGE TRANSLATION
+══════════════════════════════════════════════════════ */
+async function callGemini(apiKey, dataUrl, langName, origW, origH, origFile) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+  const rawPrompt = document.getElementById("promptEditor").value;
+  const prompt = rawPrompt.replace(/{LANG}/g, langName).replace(/{W}/g, origW).replace(/{H}/g, origH);
+  const body = {
+    contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
+    generationConfig:{response_modalities:["TEXT","IMAGE"]}
+  };
+  let lastErr = null;
+  for (const MODEL of MODELS) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+        {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       const data = await res.json();
       if (!res.ok) {
-        lastError = data?.error?.message || `HTTP ${res.status}`;
-        if (lastError.includes("not found") || lastError.includes("not supported")) continue;
-        throw new Error(lastError);
+        lastErr = data?.error?.message || `HTTP ${res.status}`;
+        if (lastErr.includes("not found")||lastErr.includes("not supported")) continue;
+        throw new Error(lastErr);
       }
       const parts = data.candidates?.[0]?.content?.parts || [];
-      const imgPart = parts.find(p => {
-        const d = p.inlineData || p.inline_data;
-        return ((d?.mimeType || d?.mime_type)||"").startsWith("image/");
-      });
-      if (!imgPart) {
-        const tp = parts.find(p=>p.text);
-        throw new Error("No image returned. " + (tp?.text?.slice(0,150)||""));
-      }
-      document.getElementById("modelPill").textContent = "model: "+MODEL;
-      const d   = imgPart.inlineData || imgPart.inline_data;
-      const mt  = d.mimeType || d.mime_type;
-      const raw = "data:"+mt+";base64,"+d.data;
-      // Resize to original dimensions
-      return await resizeToOriginal(raw, origW, origH, origFile);
+      const imgPart = parts.find(p => { const d=p.inlineData||p.inline_data; return ((d?.mimeType||d?.mime_type)||"").startsWith("image/"); });
+      if (!imgPart) { const tp=parts.find(p=>p.text); throw new Error("No image. "+(tp?.text?.slice(0,120)||"")); }
+      document.getElementById("modelBadge").textContent = "model: " + MODEL;
+      const d = imgPart.inlineData||imgPart.inline_data;
+      return await resizeToOriginal("data:"+(d.mimeType||d.mime_type)+";base64,"+d.data, origW, origH, origFile);
     } catch(e) {
-      if (e.message?.includes("not found") || e.message?.includes("not supported")) {
-        lastError = e.message; continue;
-      }
+      if (e.message?.includes("not found")||e.message?.includes("not supported")) { lastErr=e.message; continue; }
       throw e;
     }
   }
-  throw new Error("No working model found. Last: " + lastError);
+  throw new Error("No working model. Last error: " + lastErr);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   RESIZE + MATCH ORIGINAL FILE SIZE
-   Strategy:
-   - Resize to exact original pixel dimensions
-   - For JPG originals: binary-search JPEG quality to match original byte size
-   - For PNG originals: use moderate compression to stay close to original size
-═══════════════════════════════════════════════════════════════ */
-async function resizeToOriginal(dataUrl, targetW, targetH, origFile) {
-  // Draw to canvas at exact original size
-  const pngFull = await drawToCanvas(dataUrl, targetW, targetH, "image/png");
-
-  const origMime = origFile.type || "image/png";
-  const origBytes = origFile.size;
-
-  if (origMime === "image/jpeg" || origMime === "image/jpg") {
-    // Binary-search JPEG quality to get closest file size to original
-    const jpgUrl = await matchJpgSize(pngFull, targetW, targetH, origBytes);
-    return jpgUrl;
-  } else {
-    // For PNG: canvas PNG is always uncompressed; convert via JPG at high quality
-    // then back — but actually just return the PNG and accept slight size diff.
-    // To reduce bloat: draw at original size and export as PNG (browser compresses).
-    return pngFull;
-  }
+/* ══════════════════════════════════════════════════════
+   RESIZE
+══════════════════════════════════════════════════════ */
+async function resizeToOriginal(dataUrl, w, h, origFile) {
+  const png = await drawCanvas(dataUrl, w, h, "image/png");
+  const m = origFile.type || "image/png";
+  if (m==="image/jpeg"||m==="image/jpg") return await matchJpgSize(png, w, h, origFile.size);
+  return png;
 }
-
-function drawToCanvas(src, w, h, mimeOut) {
-  return new Promise((resolve, reject) => {
+function drawCanvas(src, w, h, mime) {
+  return new Promise((res,rej) => {
     const img = new Image();
-    img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      const ctx = c.getContext("2d");
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL(mimeOut, 1.0));
-    };
-    img.onerror = () => reject(new Error("Cannot load image"));
-    img.src = src;
+    img.onload = () => { const c=document.createElement("canvas"); c.width=w; c.height=h; const ctx=c.getContext("2d"); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; ctx.drawImage(img,0,0,w,h); res(c.toDataURL(mime,1)); };
+    img.onerror = ()=>rej(new Error("load fail")); img.src=src;
   });
 }
-
-async function matchJpgSize(pngDataUrl, w, h, targetBytes) {
-  // Load once, reuse canvas
-  const img = await new Promise((res, rej) => {
-    const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = pngDataUrl;
-  });
-  const c = document.createElement("canvas");
-  c.width = w; c.height = h;
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(img, 0, 0, w, h);
-
-  // Binary search quality 0.1 → 1.0 to find closest byte size
-  let lo = 0.10, hi = 1.0, best = null, bestDiff = Infinity;
-  for (let iter = 0; iter < 12; iter++) {
-    const mid = (lo + hi) / 2;
-    const url = c.toDataURL("image/jpeg", mid);
-    // base64 size → approx byte size: base64len * 3/4
-    const approxBytes = Math.floor(url.length * 0.75);
-    const diff = Math.abs(approxBytes - targetBytes);
-    if (diff < bestDiff) { bestDiff = diff; best = url; }
-    if (approxBytes > targetBytes) hi = mid;
-    else lo = mid;
-    if (hi - lo < 0.005) break;
+async function matchJpgSize(pngUrl, w, h, targetBytes) {
+  const img = await new Promise((r,j)=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=j; i.src=pngUrl; });
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
+  let lo=0.1, hi=1, best=null, bestDiff=Infinity;
+  for (let i=0; i<12; i++) {
+    const m=(lo+hi)/2, url=c.toDataURL("image/jpeg",m);
+    const diff=Math.abs(url.length*.75 - targetBytes);
+    if (diff<bestDiff) { bestDiff=diff; best=url; }
+    if (url.length*.75>targetBytes) hi=m; else lo=m;
+    if (hi-lo<.005) break;
   }
   return best;
 }
-
-/* convert PNG dataUrl → JPG dataUrl at given quality */
-function pngToJpg(pngDataUrl, quality=0.92) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0,0,c.width,c.height);
-      ctx.drawImage(img,0,0);
-      resolve(c.toDataURL("image/jpeg", quality));
-    };
-    img.src = pngDataUrl;
+function pngToJpg(pngUrl, q=0.92) {
+  return new Promise(res => {
+    const img=new Image(); img.onload=()=>{const c=document.createElement("canvas"); c.width=img.naturalWidth; c.height=img.naturalHeight; const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(img,0,0); res(c.toDataURL("image/jpeg",q)); }; img.src=pngUrl;
   });
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    RUN
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 async function run() {
   const apiKey = getFullApiKey();
-  if (!apiKey || uploadedFiles.length===0 || selectedLangs.size===0) return;
+  if (!apiKey || !uploadedFiles.length || !selectedLangs.size) return;
 
   clearErrors();
   resultsData = [];
-  statDone = statFail = 0;
+  let statDone=0, statFail=0;
 
-  const area = document.getElementById("contentArea");
-  document.getElementById("emptyState")?.remove();
+  const runBtn = document.getElementById("runBtn");
+  const pfill  = document.getElementById("progressFill");
+  const plabel = document.getElementById("progressLabel");
+  const step5Back = document.getElementById("step5Back");
 
-  // remove old results section
-  document.getElementById("resultsSection")?.remove();
+  runBtn.disabled = true; runBtn.textContent = "⏳ Running…";
+  step5Back.disabled = true;
 
-  const runBtn   = document.getElementById("runBtn");
-  const runIcon  = document.getElementById("runIcon");
-  const runLabel = document.getElementById("runLabel");
-  const pwrap    = document.getElementById("progressWrap");
-  const pfill    = document.getElementById("progressFill");
-  const ptxt     = document.getElementById("progressText");
-  const statsBar = document.getElementById("statsBar");
-
-  runBtn.disabled = true;
-  runIcon.innerHTML = `<span class="spinner" style="border-top-color:#080809"></span>`;
-  runLabel.textContent = "Translating…";
-  pwrap.style.display = "block";
-  statsBar.style.display = "none";
-
-  // Build jobs
   const jobs = [];
   for (const f of uploadedFiles)
-    for (const l of selectedLangs)
-      jobs.push({file:f, lang:l});
-  statTotal = jobs.length;
-  document.getElementById("statTotal").textContent = statTotal;
+    for (const lang of selectedLangs)
+      jobs.push({file:f, lang});
+  const total = jobs.length;
 
-  // Create results section
-  const section = document.createElement("div");
-  section.className = "results-section"; section.id = "resultsSection";
-  section.innerHTML = `
-    <div class="results-header">
-      <h3>🌐 Translated Screenshots <span class="count-badge" id="doneCount">0 / ${statTotal}</span></h3>
-      <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
-        ⬇ Download ZIP
-      </button>
-    </div>
-    <div class="results-grid" id="resultsGrid"></div>`;
-  area.appendChild(section);
+  // Show results page immediately
+  document.getElementById("resultsPage").classList.add("visible");
+  document.getElementById("resultsGrid").innerHTML = "";
+  document.getElementById("previewPanel").style.display = "none";
+  document.getElementById("langDlRow").style.display = "none";
 
-  // Process
+  const completedLangs = new Set();
+
+  // Pre-extract original English text for each file (once per file)
+  const origTextCache = {};
+
   for (let i=0; i<jobs.length; i++) {
     const {file, lang} = jobs[i];
-    ptxt.innerHTML = `<span style="color:var(--muted2)">${file.name}</span> → <span style="color:var(--lime)">${lang}</span> &nbsp;(${i+1}/${statTotal})`;
+    const langObj = ALL_LANGS.find(l => l.code === lang);
+    const langName = langObj?.name || lang;
+    const jobId = "ji_" + file.id + "_" + lang.replace(/\W/g,"_");
 
-    const cardId = "rc_"+i;
-    createResultCard(cardId, file.name, lang);
+    setJobStatus(jobId, "working");
+    plabel.innerHTML = `<span style="color:var(--text2)">${file.name}</span> → <span style="color:var(--accent)">${langName}</span> &nbsp;(${i+1}/${total})`;
+
+    const cardId = "rc_" + i;
+    createResultCard(cardId, file, langName);
 
     try {
-      // Run image translation and text extraction in parallel
-      const [pngUrl, extractedText] = await Promise.all([
-        callGemini(apiKey, file.dataUrl, lang, file.w, file.h, file.file),
-        extractTextFromImage(apiKey, file.dataUrl, lang)
-      ]);
+      // Parallel: translate image + extract original text (once per file)
+      const tasks = [
+        callGemini(apiKey, file.dataUrl, langName, file.w, file.h, file.file)
+      ];
+      if (!origTextCache[file.id]) {
+        tasks.push(extractOriginalText(apiKey, file.dataUrl));
+      }
+      const results = await Promise.all(tasks);
+      const pngUrl = results[0];
+      if (results[1] !== undefined) origTextCache[file.id] = results[1];
+      const origText = origTextCache[file.id] || "";
+
+      // Extract text from translated image
+      const transText = await extractTranslatedText(apiKey, pngUrl, langName);
       const jpgUrl = await pngToJpg(pngUrl);
 
       const baseName = file.name.replace(/\.[^/.]+$/,"");
-      const entry = { id:cardId, imgId:file.id, lang, pngUrl, jpgUrl, name:baseName+"_"+lang, extractedText };
+      const entry = {
+        id: cardId, imgId: file.id, origName: file.name, lang: langName, langCode: lang,
+        pngUrl, jpgUrl, name: baseName + "_" + langName,
+        origText, transText
+      };
       resultsData.push(entry);
 
-      fillResultCard(cardId, pngUrl, jpgUrl, baseName, lang, extractedText);
+      fillResultCard(cardId, entry);
+      completedLangs.add(langName);
+      updateLangDlRow(completedLangs);
+      updatePreviewPanel();
       statDone++;
-
-      // update preview if this is the active file
-      if (activePreviewFileId === file.id) renderPreview(file.id);
-
+      setJobStatus(jobId, "ok");
     } catch(e) {
-      logError(`✗ ${file.name} → ${lang}: ${e.message}`);
-      markResultCardError(cardId, e.message);
+      logError(`✗ ${file.name} → ${langName}: ${e.message}`);
+      failResultCard(cardId);
+      setJobStatus(jobId, "err");
       statFail++;
     }
 
-    pfill.style.width = Math.floor((i+1)/statTotal*100)+"%";
-    document.getElementById("doneCount").textContent = `${i+1} / ${statTotal}`;
-    document.getElementById("statDone").textContent = statDone;
-    document.getElementById("statFail").textContent = statFail;
+    pfill.style.width = Math.floor((i+1)/total*100)+"%";
+    updateResultsTags(statDone, statFail, total);
   }
 
-  runBtn.disabled = false;
-  runIcon.textContent = "▶";
-  runLabel.textContent = "Translate Screenshots";
-  ptxt.innerHTML = `<span style="color:var(--success)">✔ Done</span> — ${statDone} translated, ${statFail} failed · model: ${document.getElementById("modelPill").textContent.replace("model: ","")}`;
-  statsBar.style.display = "flex";
+  runBtn.disabled=false; runBtn.textContent="▶ Re-run Translation";
+  step5Back.disabled=false;
+  plabel.innerHTML=`<span style="color:var(--success)">✔ Complete</span> — ${statDone} done, ${statFail} failed`;
 
   if (resultsData.length) {
-    document.getElementById("zipBtn").disabled = false;
+    document.getElementById("zipBtn").disabled=false;
+    document.getElementById("csvBtn").disabled=false;
   }
+  showToast(statFail===0 ? "✓" : "⚠", statDone+" translated" + (statFail?", "+statFail+" failed":""));
 }
 
-/* ═══════════════════════════════════════════════════════════════
+function setJobStatus(jobId, status) {
+  const el = document.getElementById(jobId); if (!el) return;
+  const s = el.querySelector(".job-status");
+  if (status==="working") s.innerHTML=`<div class="job-spin"></div>`;
+  else if (status==="ok") s.innerHTML=`<span class="job-ok">✓</span>`;
+  else if (status==="err") s.innerHTML=`<span class="job-err">✗</span>`;
+}
+
+function updateResultsTags(done, fail, total) {
+  document.getElementById("resultCount").textContent = total;
+  if (done>0) { document.getElementById("doneTag").style.display=""; document.getElementById("doneNum").textContent=done; }
+  if (fail>0) { document.getElementById("failTag").style.display=""; document.getElementById("failNum").textContent=fail; }
+}
+
+/* ══════════════════════════════════════════════════════
    RESULT CARDS
-═══════════════════════════════════════════════════════════════ */
-function createResultCard(id, fileName, lang) {
+══════════════════════════════════════════════════════ */
+function createResultCard(id, file, langName) {
+  const langObj = ALL_LANGS.find(l=>l.name===langName);
   const grid = document.getElementById("resultsGrid");
   const card = document.createElement("div");
-  card.className = "result-card"; card.id = id;
+  card.className = "result-card"; card.id = id; card.dataset.imgid = file.id;
   card.innerHTML = `
-    <div class="rc-img-wrap">
-      <div class="rc-placeholder"><div class="rc-spinner"></div><span>Translating to ${lang}…</span></div>
+    <div class="rc-img">
+      <div class="rc-placeholder"><div class="rc-spinner"></div><span>${langObj?.flag||"🌐"} ${langName}…</span></div>
     </div>
     <div class="rc-body">
-      <div class="rc-title">${fileName}</div>
-      <div class="rc-sub">→ ${lang}</div>
-      <span class="rc-status working">● Translating…</span>
+      <div class="rc-title">${file.name}</div>
+      <div class="rc-lang">${langObj?.flag||"🌐"} ${langName}</div>
+      <span class="rc-status working">⏳ Translating…</span>
     </div>`;
   grid.appendChild(card);
-  card.scrollIntoView({behavior:"smooth", block:"nearest"});
+  card.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
-function fillResultCard(id, pngUrl, jpgUrl, baseName, lang, extractedText) {
-  const card = document.getElementById(id);
-  if (!card) return;
+function fillResultCard(id, entry) {
+  const card = document.getElementById(id); if (!card) return;
   card.classList.add("done");
-
-  const showPng  = outputFormat === "png"  || outputFormat === "both";
-  const showJpg  = outputFormat === "jpg"  || outputFormat === "both";
-  const safeText = (extractedText||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-
+  const langObj = ALL_LANGS.find(l=>l.name===entry.lang||l.code===entry.langCode);
+  const safeText = (entry.transText||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   card.innerHTML = `
-    <div class="rc-img-wrap">
-      <img src="${pngUrl}" alt="${baseName}_${lang}" onclick="openLightbox('${pngUrl}','${baseName} — ${lang}')">
-      <div class="rc-overlay">
-        <button class="rc-preview-btn" onclick="openLightbox('${pngUrl}','${baseName} — ${lang}')">🔍 Zoom</button>
-      </div>
+    <div class="rc-img">
+      <img src="${entry.pngUrl}" alt="${entry.name}" onclick="openLightbox('${entry.pngUrl.replace(/'/g,"\\'")}','${entry.name}')">
+      <div class="rc-overlay"><button class="rc-zoom-btn" onclick="openLightbox('${entry.pngUrl.replace(/'/g,"\\'")}','${entry.name}')">🔍 View Full</button></div>
     </div>
     <div class="rc-body">
-      <div class="rc-title">${baseName}_${lang}</div>
-      <div class="rc-actions" style="margin-top:6px">
-        ${showPng ? `<a class="btn-dl-png" href="${pngUrl}" download="${baseName}_${lang}.png">⬇ PNG</a>` : ""}
-        ${showJpg ? `<a class="btn-dl-jpg" href="${jpgUrl}" download="${baseName}_${lang}.jpg">⬇ JPG</a>` : ""}
+      <div class="rc-title">${entry.name}</div>
+      <div class="rc-lang">${langObj?.flag||"🌐"} ${entry.lang} · ${entry.langCode}</div>
+      <div class="rc-action-row" style="margin-top:8px">
+        <button class="rc-dl-btn" onclick="openDlModal('card','${id}')">⬇ Download</button>
+        <span class="rc-status done">✓ Done</span>
       </div>
-      ${safeText ? `
-      <div class="rc-textbox-label">Extracted & Translated Text</div>
-      <div class="rc-textbox">${safeText}</div>` : ""}
-      <span class="rc-status done">✓ Done</span>
+      ${safeText?`<button class="rc-text-toggle" onclick="toggleTextBox(this)">Show extracted text ▾</button><div class="rc-textbox" style="display:none">${safeText}</div>`:""}
     </div>`;
 }
 
-function markResultCardError(id, msg) {
-  const card = document.getElementById(id);
-  if (!card) return;
+function failResultCard(id) {
+  const card = document.getElementById(id); if (!card) return;
   const ph = card.querySelector(".rc-placeholder");
-  if (ph) ph.innerHTML = `<span style="font-size:22px;opacity:.3">✗</span><span style="color:var(--danger)">Failed</span>`;
-  const status = card.querySelector(".rc-status");
-  if (status) { status.className = "rc-status error"; status.textContent = "✗ Error"; }
+  if (ph) ph.innerHTML=`<span style="font-size:22px;opacity:.25">✗</span><span style="color:var(--danger)">Failed</span>`;
   const body = card.querySelector(".rc-body");
-  if (body) {
-    const errEl = document.createElement("div");
-    errEl.className = "rc-error-msg"; errEl.textContent = msg.slice(0,120);
-    body.appendChild(errEl);
-  }
+  const st = body?.querySelector(".rc-status");
+  if (st) { st.className="rc-status error"; st.textContent="✗ Error"; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ZIP DOWNLOAD
-═══════════════════════════════════════════════════════════════ */
-async function downloadZip() {
+function toggleTextBox(btn) {
+  const box = btn.nextElementSibling;
+  const open = box.style.display !== "none";
+  box.style.display = open ? "none" : "block";
+  btn.textContent = open ? "Show extracted text ▾" : "Hide text ▴";
+}
+
+/* ══════════════════════════════════════════════════════
+   PREVIEW PANEL
+══════════════════════════════════════════════════════ */
+function updatePreviewPanel() {
+  if (!resultsData.length && !uploadedFiles.length) return;
+  const panel = document.getElementById("previewPanel");
+  panel.style.display = "block";
+  if (!activePreviewFileId && uploadedFiles.length) activePreviewFileId = uploadedFiles[0].id;
+  renderPreview();
+}
+
+function renderPreview() {
+  const fileId = activePreviewFileId || uploadedFiles[0]?.id;
+  if (!fileId) return;
+  activePreviewFileId = fileId;
+  const file = uploadedFiles.find(f => f.id === fileId);
+  if (!file) return;
+
+  const doneLangs = resultsData.filter(r => r.imgId === fileId).map(r => r.lang);
+  const allTabs   = ["original", ...doneLangs];
+
+  // File row
+  const fileTabsHtml = uploadedFiles.length > 1
+    ? `<div class="preview-tabs-row">
+        <span class="preview-row-label">File</span>
+        ${uploadedFiles.map(f=>`<button class="ptab${f.id===fileId?" active":""}" onclick="switchPreviewFile('${f.id}')" title="${f.name}">${truncate(f.name,16)}</button>`).join("")}
+       </div>` : "";
+
+  // Lang row
+  const langTabsHtml = `<div class="preview-tabs-row">
+    <span class="preview-row-label">View</span>
+    ${allTabs.map(t=>{
+      const lo=ALL_LANGS.find(l=>l.name===t);
+      const lbl=t==="original"?"📄 Original":(lo?.flag||"🌐")+" "+t;
+      return `<button class="ptab${t===activePreviewLang?" active":""}" onclick="switchPreviewTab('${fileId}','${encodeURIComponent(t)}')">${lbl}</button>`;
+    }).join("")}
+  </div>`;
+
+  document.getElementById("previewHeader").innerHTML = fileTabsHtml + langTabsHtml;
+
+  const res = resultsData.find(r => r.imgId===fileId && r.lang===activePreviewLang);
+  const translatedSrc = res ? res.pngUrl : null;
+
+  const dlOrigBtn = `<button class="compare-dl-btn" onclick="openDlModal('direct','${encodeURIComponent(file.dataUrl)}','${encodeURIComponent(file.name)}')">⬇ Download</button>`;
+  const dlTransBtn = translatedSrc ? `<button class="compare-dl-btn" onclick="openDlModal('card','${res.id}')">⬇ Download</button>` : "";
+
+  document.getElementById("previewCompare").innerHTML = `
+    <div class="compare-side">
+      <div class="compare-label"><span>📄 Original — ${file.w}×${file.h} · ${file.size}</span>${dlOrigBtn}</div>
+      <img class="compare-img" src="${file.dataUrl}" onclick="openLightbox('${file.dataUrl.substring(0,60).replace(/'/g,"\\'")}…','${file.name} (original)')" alt="original">
+    </div>
+    <div class="compare-side">
+      <div class="compare-label"><span class="badge">${translatedSrc ? "🌐 " + activePreviewLang : "Translated"}</span>${dlTransBtn}</div>
+      ${translatedSrc
+        ? `<img class="compare-img" src="${translatedSrc}" onclick="openLightbox('${translatedSrc.replace(/'/g,"\\'")}','${file.name} — ${activePreviewLang}')" alt="translated">`
+        : `<div class="compare-placeholder"><span style="font-size:28px;opacity:.15">🌐</span><span>Select a language tab above</span></div>`}
+    </div>`;
+}
+
+function switchPreviewFile(id) { activePreviewFileId=id; activePreviewLang="original"; renderPreview(); }
+function switchPreviewTab(id, lang) { activePreviewFileId=id; activePreviewLang=decodeURIComponent(lang); renderPreview(); }
+
+function updateResultsPage() {
+  if (resultsData.length || uploadedFiles.length) updatePreviewPanel();
+}
+
+function truncate(s, n) { return s.length > n ? s.slice(0,n)+"…" : s; }
+
+/* ══════════════════════════════════════════════════════
+   LANG DOWNLOAD ROW
+══════════════════════════════════════════════════════ */
+function updateLangDlRow(completedLangs) {
+  const row = document.getElementById("langDlRow");
+  const btns = document.getElementById("langDlBtns");
+  row.style.display = "flex";
+  const existing = new Set([...btns.querySelectorAll(".lang-dl-btn")].map(b=>b.dataset.lang));
+  completedLangs.forEach(lang => {
+    if (!existing.has(lang)) {
+      const lo = ALL_LANGS.find(l=>l.name===lang||l.code===lang);
+      const btn = document.createElement("button");
+      btn.className="lang-dl-btn"; btn.dataset.lang=lang;
+      btn.innerHTML=`${lo?.flag||"🌐"} ${lang}`;
+      btn.onclick=()=>openDlModal("lang",lang);
+      btns.appendChild(btn);
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   DOWNLOAD MODAL
+══════════════════════════════════════════════════════ */
+function openDlModal(type, arg1, arg2) {
+  // type = 'card'|'lang'|'all'|'direct'
+  dlTarget = {type, arg1, arg2};
+  const modal = document.getElementById("dlModal");
+  const name = document.getElementById("dlModalName");
+  if (type==="card") {
+    const r = resultsData.find(r=>r.id===arg1);
+    name.textContent = r ? r.name : "image";
+  } else if (type==="lang") {
+    name.textContent = arg1 + " (all images)";
+  } else if (type==="all") {
+    name.textContent = "all translated images";
+  } else if (type==="direct") {
+    name.textContent = decodeURIComponent(arg2||"image");
+  }
+  selectFmt("png");
+  modal.classList.add("open");
+}
+function closeDlModal() { document.getElementById("dlModal").classList.remove("open"); dlTarget=null; }
+function selectFmt(fmt) {
+  dlFormat = fmt;
+  document.getElementById("fopt-png").classList.toggle("selected", fmt==="png");
+  document.getElementById("fopt-jpg").classList.toggle("selected", fmt==="jpg");
+}
+async function confirmDownload() {
+  if (!dlTarget) return closeDlModal();
+  const {type, arg1, arg2} = dlTarget;
+  closeDlModal();
+  if (type==="card") await dlCard(arg1);
+  else if (type==="lang") await dlLang(arg1);
+  else if (type==="all") await dlAll();
+  else if (type==="direct") dlDirect(decodeURIComponent(arg1), decodeURIComponent(arg2));
+}
+
+function getUrl(r) { return dlFormat==="jpg" ? r.jpgUrl : r.pngUrl; }
+function getExt() { return dlFormat; }
+
+function dlDirect(src, name) {
+  // For original image download
+  if (dlFormat==="jpg") {
+    pngToJpg(src).then(jpgUrl => triggerDl(jpgUrl, name.replace(/\.[^.]+$/,"")+".jpg"));
+  } else {
+    triggerDl(src, name);
+  }
+}
+function triggerDl(src, name) { const a=document.createElement("a"); a.href=src; a.download=name; a.click(); }
+
+async function dlCard(id) {
+  const r = resultsData.find(r=>r.id===id); if (!r) return;
+  triggerDl(getUrl(r), r.name + "." + getExt());
+}
+
+async function dlLang(lang) {
+  const items = resultsData.filter(r=>r.lang===lang);
+  if (!items.length) return;
+  if (items.length===1) { triggerDl(getUrl(items[0]), items[0].name+"."+getExt()); return; }
+  const langObj = ALL_LANGS.find(l=>l.name===lang);
+  const zip=new JSZip();
+  const folder=zip.folder(lang+"_"+(langObj?.code||""));
+  items.forEach(r => folder.file(r.name+"."+getExt(), getUrl(r).split(",")[1], {base64:true}));
+  const blob=await zip.generateAsync({type:"blob"});
+  triggerDl(URL.createObjectURL(blob), lang+"_screenshots.zip");
+  showToast("✓", lang+" — downloaded");
+}
+
+async function dlAll() {
   if (!resultsData.length) return;
-  const btn = document.getElementById("zipBtn");
-  btn.disabled = true; btn.textContent = "⏳ Packing…";
-
-  const zip = new JSZip();
-  const showPng = outputFormat==="png" || outputFormat==="both";
-  const showJpg = outputFormat==="jpg" || outputFormat==="both";
-
-  for (const r of resultsData) {
-    if (showPng && r.pngUrl) zip.file(r.name+".png", r.pngUrl.split(",")[1], {base64:true});
-    if (showJpg && r.jpgUrl) zip.file(r.name+".jpg", r.jpgUrl.split(",")[1], {base64:true});
-  }
-
-  const blob = await zip.generateAsync({type:"blob"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "localized_screenshots.zip";
-  a.click();
-
-  btn.disabled = false; btn.textContent = "⬇ Download ZIP";
+  const zip=new JSZip();
+  const langFolders={};
+  resultsData.forEach(r => {
+    const lo=ALL_LANGS.find(l=>l.name===r.lang||l.code===r.langCode);
+    const fname=r.lang+"_"+(lo?.code||r.langCode||"");
+    if (!langFolders[fname]) langFolders[fname]=zip.folder(fname);
+    langFolders[fname].file(r.name+"."+getExt(), getUrl(r).split(",")[1], {base64:true});
+  });
+  const blob=await zip.generateAsync({type:"blob"});
+  triggerDl(URL.createObjectURL(blob), "localized_screenshots.zip");
+  showToast("✓", "ZIP downloaded");
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ERROR LOG
-═══════════════════════════════════════════════════════════════ */
+function openZipDownload() { openDlModal("all", null, null); document.getElementById("dlModalName").textContent="all translated images"; }
+
+/* ══════════════════════════════════════════════════════
+   CSV EXPORT
+══════════════════════════════════════════════════════ */
+function downloadCSV() {
+  if (!resultsData.length) return;
+  const rows = [["image_name","language_name","language_code","original_text_en","localized_text"]];
+
+  resultsData.forEach(r => {
+    const origLines  = (r.origText||"").split("\n").filter(Boolean);
+    const transLines = (r.transText||"").split("\n").filter(Boolean);
+    const max = Math.max(origLines.length, transLines.length, 1);
+    for (let i=0; i<max; i++) {
+      rows.push([
+        csvE(r.origName),
+        csvE(r.lang),
+        csvE(r.langCode),
+        csvE(origLines[i]||""),
+        csvE(transLines[i]||"")
+      ]);
+    }
+  });
+
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8"});
+  triggerDl(URL.createObjectURL(blob), "localization_strings.csv");
+  showToast("📄", "CSV exported — "+resultsData.length+" entries");
+}
+function csvE(s) { const v=String(s||""); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+
+/* ══════════════════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════════════════ */
+function openLightbox(src, label) {
+  document.getElementById("lb-img").src = src;
+  document.getElementById("lb-info").textContent = label;
+  document.getElementById("lightbox").classList.add("open");
+}
+function closeLightbox() { document.getElementById("lightbox").classList.remove("open"); }
+document.getElementById("lightbox").addEventListener("click", e => { if (e.target===document.getElementById("lightbox")) closeLightbox(); });
+document.addEventListener("keydown", e => { if (e.key==="Escape") { closeLightbox(); closeDlModal(); } });
+
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(icon, msg) {
+  clearTimeout(toastTimer);
+  document.getElementById("toastIcon").textContent = icon;
+  document.getElementById("toastMsg").textContent = msg;
+  document.getElementById("toast").classList.add("show");
+  toastTimer = setTimeout(()=>document.getElementById("toast").classList.remove("show"), 3500);
+}
+
+/* ══════════════════════════════════════════════════════
+   ERRORS
+══════════════════════════════════════════════════════ */
 function logError(msg) {
-  const box = document.getElementById("errorBox");
-  box.style.display = "block";
-  box.textContent += msg + "\n";
+  const b=document.getElementById("errorBox"); b.style.display="block"; b.textContent+=msg+"\n";
 }
 function clearErrors() {
-  const box = document.getElementById("errorBox");
-  box.style.display = "none"; box.textContent = "";
+  const b=document.getElementById("errorBox"); b.style.display="none"; b.textContent="";
 }
 </script>
 </body>
