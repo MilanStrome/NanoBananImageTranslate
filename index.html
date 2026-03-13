@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nano Banana — Screenshot Localizer Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --bg:       #080809;
+  --s1:       #0f0f11;
+  --s2:       #141417;
+  --s3:       #1c1c20;
+  --border:   #242428;
+  --border2:  #2e2e34;
+  --lime:     #c8f135;
+  --lime-dim: rgba(200,241,53,.08);
+  --lime-glow:rgba(200,241,53,.18);
+  --violet:   #7c6bff;
+  --violet-dim:rgba(124,107,255,.1);
+  --text:     #f2f2f3;
+  --muted:    #6b6b74;
+  --muted2:   #9494a0;
+  --success:  #3effa0;
+  --danger:   #ff5f72;
+  --warn:     #ffb830;
+  --radius:   14px;
+  --radius-sm:8px;
+}
+
+/* ─── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family:'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* subtle grid bg */
+body::before {
+  content:'';
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────────── */
+.wrap { max-width:1280px; margin:0 auto; padding:0 28px; position:relative; z-index:1; }
+
+/* ─── HEADER ─────────────────────────────────────────────────── */
+header {
+  padding: 28px 0 24px;
+  display: flex; align-items:center; justify-content:space-between;
+  border-bottom: 1px solid var(--border);
+}
+.logo { display:flex; align-items:center; gap:14px; }
+.logo-icon {
+  width:42px; height:42px; border-radius:12px;
+  background: linear-gradient(135deg,#d4ff50,#a8d400);
+  display:grid; place-items:center; font-size:22px;
+  box-shadow: 0 4px 20px rgba(200,241,53,.3);
+  flex-shrink:0;
+}
+.logo-text h1 {
+  font-family:'Instrument Serif', serif;
+  font-size:20px; font-weight:400; letter-spacing:-.3px;
+  line-height:1.1;
+}
+.logo-text h1 em { font-style:italic; color:var(--lime); }
+.logo-text p { font-size:11px; color:var(--muted); font-weight:400; margin-top:1px; letter-spacing:.03em; }
+
+.header-right { display:flex; align-items:center; gap:10px; }
+.pill {
+  font-size:11px; font-weight:500; font-family:'DM Mono',monospace;
+  color:var(--muted2); background:var(--s2);
+  border:1px solid var(--border); border-radius:20px;
+  padding:5px 12px; letter-spacing:.04em;
+}
+
+/* ─── API BANNER ─────────────────────────────────────────────── */
+.api-bar {
+  background:var(--s1); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px 20px;
+  margin:24px 0;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.api-bar label { font-size:12px; font-weight:600; color:var(--muted2); white-space:nowrap; letter-spacing:.05em; text-transform:uppercase; }
+.api-input-wrap { flex:1; min-width:260px; position:relative; }
+.api-input-wrap input {
+  width:100%; padding:10px 14px 10px 40px;
+  background:var(--s3); border:1px solid var(--border2);
+  border-radius:var(--radius-sm); color:var(--text);
+  font-family:'DM Mono',monospace; font-size:13px; outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.api-input-wrap input:focus { border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-dim); }
+.api-input-wrap .key-icon {
+  position:absolute; left:13px; top:50%; transform:translateY(-50%);
+  font-size:14px; pointer-events:none;
+}
+.key-status {
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; font-family:'DM Mono',monospace;
+  white-space:nowrap;
+}
+.key-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.key-dot.ok  { background:var(--success); box-shadow:0 0 8px rgba(62,255,160,.5); }
+.key-dot.err { background:var(--danger); }
+
+/* ─── MAIN GRID ──────────────────────────────────────────────── */
+.main { display:grid; grid-template-columns:320px 1fr; gap:20px; padding-bottom:60px; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────────── */
+.sidebar { display:flex; flex-direction:column; gap:16px; }
+
+.card {
+  background:var(--s1); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px;
+  transition: border-color .2s;
+}
+.card:hover { border-color: var(--border2); }
+
+.card-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.card-label {
+  font-size:11px; font-weight:600; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.08em;
+  display:flex; align-items:center; gap:6px;
+}
+.card-label .dot-accent {
+  width:6px; height:6px; border-radius:50%; background:var(--lime);
+}
+
+/* ─── DROP ZONE ──────────────────────────────────────────────── */
+.dropzone {
+  border:2px dashed var(--border2); border-radius:10px;
+  padding:24px 16px; text-align:center; cursor:pointer;
+  transition:all .2s; position:relative; overflow:hidden;
+}
+.dropzone.hover { border-color:var(--lime); background:var(--lime-dim); }
+.dropzone input[type=file] {
+  position:absolute; inset:0; opacity:0; cursor:pointer; font-size:0;
+}
+.dz-icon { font-size:26px; margin-bottom:8px; display:block; }
+.dz-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; }
+.dz-sub { font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; }
+.dz-sub strong { color:var(--lime); }
+
+/* ─── FILE LIST ──────────────────────────────────────────────── */
+#fileList { display:flex; flex-direction:column; gap:6px; margin-top:12px; max-height:220px; overflow-y:auto; }
+#fileList::-webkit-scrollbar { width:4px; }
+#fileList::-webkit-scrollbar-track { background:transparent; }
+#fileList::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.file-item {
+  display:flex; align-items:center; gap:10px;
+  background:var(--s3); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px;
+  cursor:pointer; transition:border-color .15s;
+}
+.file-item:hover { border-color:var(--border2); }
+.file-item.selected { border-color:var(--violet); background:var(--violet-dim); }
+.file-thumb {
+  width:36px; height:36px; border-radius:5px;
+  object-fit:cover; flex-shrink:0; background:var(--s2);
+}
+.file-info { flex:1; min-width:0; }
+.file-name {
+  font-size:12px; font-weight:500; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.file-meta { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:1px; }
+.file-remove {
+  background:none; border:none; cursor:pointer; color:var(--muted);
+  font-size:14px; padding:2px; line-height:1; flex-shrink:0;
+  transition:color .15s;
+}
+.file-remove:hover { color:var(--danger); }
+
+/* ─── LANGUAGES ──────────────────────────────────────────────── */
+.lang-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:5px;
+}
+.lang-btn {
+  background:var(--s3); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px;
+  color:var(--muted2); font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:500; cursor:pointer;
+  transition:all .15s; display:flex; align-items:center; gap:6px;
+  text-align:left; white-space:nowrap;
+}
+.lang-btn:hover { border-color:var(--border2); color:var(--text); }
+.lang-btn.active {
+  border-color:var(--lime); background:var(--lime-dim);
+  color:var(--lime);
+}
+.lang-flag { font-size:15px; flex-shrink:0; }
+.lang-select-all {
+  font-size:11px; color:var(--muted); cursor:pointer;
+  background:none; border:none; font-family:'DM Sans',sans-serif;
+  text-decoration:underline; text-underline-offset:2px;
+  padding:0;
+}
+.lang-select-all:hover { color:var(--muted2); }
+
+/* ─── FORMAT PICKER ──────────────────────────────────────────── */
+.format-row { display:flex; gap:6px; }
+.fmt-btn {
+  flex:1; background:var(--s3); border:1px solid var(--border);
+  border-radius:8px; padding:9px; text-align:center;
+  font-size:12px; font-weight:600; color:var(--muted2);
+  cursor:pointer; transition:all .15s;
+  font-family:'DM Mono',monospace;
+}
+.fmt-btn:hover { border-color:var(--border2); color:var(--text); }
+.fmt-btn.active { border-color:var(--lime); background:var(--lime-dim); color:var(--lime); }
+
+/* ─── TRANSLATE BUTTON ───────────────────────────────────────── */
+.btn-run {
+  width:100%; padding:13px;
+  background:var(--lime); color:#080809;
+  border:none; border-radius:10px;
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; letter-spacing:.02em;
+  transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-run:hover:not(:disabled) { background:#d4ff50; transform:translateY(-1px); box-shadow:0 6px 24px rgba(200,241,53,.25); }
+.btn-run:disabled { opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ─── PROGRESS ───────────────────────────────────────────────── */
+.progress-wrap { margin-top:12px; }
+.progress-track {
+  width:100%; height:4px; background:var(--s3);
+  border-radius:2px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; width:0%; background:var(--lime);
+  border-radius:2px; transition:width .35s ease;
+}
+.progress-label {
+  font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;
+  margin-top:7px; display:flex; align-items:center; gap:6px; min-height:16px;
+}
+
+/* ─── ERROR BOX ──────────────────────────────────────────────── */
+#errorBox {
+  display:none; background:rgba(255,95,114,.06);
+  border:1px solid rgba(255,95,114,.3); border-radius:8px;
+  padding:10px 12px; margin-top:10px;
+  font-size:11px; font-family:'DM Mono',monospace; color:#ff8a96;
+  white-space:pre-wrap; max-height:100px; overflow-y:auto; line-height:1.6;
+}
+
+/* ─── CONTENT AREA ───────────────────────────────────────────── */
+.content { display:flex; flex-direction:column; gap:16px; }
+
+/* ─── EMPTY STATE ────────────────────────────────────────────── */
+.empty {
+  flex:1; background:var(--s1); border:1px solid var(--border);
+  border-radius:var(--radius); padding:80px 40px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; text-align:center; min-height:380px;
+}
+.empty-icon { font-size:40px; opacity:.25; }
+.empty h3 { font-family:'Instrument Serif',serif; font-size:20px; font-weight:400; color:var(--muted2); }
+.empty p { font-size:13px; color:var(--muted); max-width:300px; line-height:1.7; }
+
+/* ─── PREVIEW PANEL ──────────────────────────────────────────── */
+.preview-panel {
+  background:var(--s1); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden;
+}
+.preview-header {
+  padding:14px 18px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.preview-tabs { display:flex; gap:2px; overflow-x:auto; flex:1; }
+.preview-tabs::-webkit-scrollbar { height:0; }
+.ptab {
+  padding:7px 14px; border-radius:6px; font-size:12px; font-weight:600;
+  color:var(--muted); cursor:pointer; background:none; border:none;
+  font-family:'DM Sans',sans-serif; white-space:nowrap; transition:all .15s;
+}
+.ptab:hover { color:var(--text); background:var(--s3); }
+.ptab.active { color:var(--lime); background:var(--lime-dim); }
+.preview-body { padding:18px; }
+.preview-compare {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+.compare-side { }
+.compare-label {
+  font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.07em; margin-bottom:8px; display:flex; align-items:center; gap:5px;
+}
+.compare-label .badge-orig { color:var(--muted2); }
+.compare-label .badge-trans { color:var(--lime); }
+.compare-img {
+  width:100%; max-height:220px; object-fit:contain;
+  border-radius:8px; border:1px solid var(--border);
+  display:block; background:var(--s3); cursor:zoom-in;
+}
+.compare-placeholder {
+  width:100%; aspect-ratio:16/9; border-radius:8px;
+  border:1px dashed var(--border2); background:var(--s2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; color:var(--muted); flex-direction:column; gap:6px;
+}
+
+/* ─── RESULTS GRID ───────────────────────────────────────────── */
+.results-section { background:var(--s1); border:1px solid var(--border); border-radius:var(--radius); }
+.results-header {
+  padding:14px 18px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+.results-header h3 { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.count-badge {
+  font-size:11px; font-family:'DM Mono',monospace;
+  background:var(--s3); border:1px solid var(--border2);
+  padding:2px 8px; border-radius:20px; color:var(--muted2);
+}
+.btn-zip {
+  padding:8px 16px;
+  background:var(--violet); color:#fff;
+  border:none; border-radius:8px;
+  font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
+  cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px;
+}
+.btn-zip:hover { background:#9585ff; }
+.btn-zip:disabled { opacity:.4; cursor:not-allowed; }
+
+.results-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+  gap:10px; padding:14px;
+}
+
+/* ─── RESULT CARD ────────────────────────────────────────────── */
+.result-card {
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:10px; overflow:hidden;
+  transition:border-color .2s, transform .2s, box-shadow .2s;
+}
+.result-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.result-card.done:hover { border-color:rgba(200,241,53,.25); }
+
+.rc-img-wrap { position:relative; overflow:hidden; }
+.rc-img-wrap img { width:100%; max-height:130px; object-fit:cover; display:block; }
+.rc-placeholder {
+  width:100%; height:100px;
+  background:var(--s3); display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:6px;
+  font-size:12px; color:var(--muted);
+}
+.rc-spinner {
+  width:20px; height:20px; border:2px solid var(--border2);
+  border-top-color:var(--lime); border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+.rc-overlay {
+  position:absolute; inset:0; background:rgba(8,8,9,.6);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .2s;
+}
+.result-card:hover .rc-overlay { opacity:1; }
+.rc-preview-btn {
+  background:rgba(255,255,255,.12); backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.15); color:#fff;
+  padding:7px 16px; border-radius:6px; font-size:12px; font-weight:600;
+  cursor:pointer; font-family:'DM Sans',sans-serif;
+}
+
+.rc-body { padding:10px; }
+.rc-title { font-size:12px; font-weight:600; color:var(--text); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rc-sub { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:10px; }
+
+.rc-actions { display:flex; gap:6px; }
+.btn-dl-png, .btn-dl-jpg {
+  flex:1; padding:7px 6px; border-radius:7px; text-align:center;
+  font-size:11px; font-weight:700; cursor:pointer;
+  font-family:'DM Sans',sans-serif; border:none; transition:all .15s;
+  text-decoration:none; display:block;
+}
+.btn-dl-png { background:var(--violet); color:#fff; }
+.btn-dl-png:hover { background:#9585ff; }
+.btn-dl-jpg { background:var(--s3); color:var(--muted2); border:1px solid var(--border2); }
+.btn-dl-jpg:hover { border-color:var(--border2); color:var(--text); background:var(--s2); }
+
+.rc-status {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:10px; font-weight:600; font-family:'DM Mono',monospace;
+  padding:3px 8px; border-radius:20px; margin-top:8px;
+}
+.rc-status.working { background:rgba(200,241,53,.08); color:var(--lime); border:1px solid rgba(200,241,53,.2); }
+.rc-status.done    { background:rgba(62,255,160,.06); color:var(--success); border:1px solid rgba(62,255,160,.2); }
+.rc-status.error   { background:rgba(255,95,114,.06); color:var(--danger); border:1px solid rgba(255,95,114,.2); }
+.rc-error-msg { font-size:10px; color:var(--danger); margin-top:6px; line-height:1.5; word-break:break-word; }
+.rc-textbox {
+  margin-top:8px; background:var(--s1); border:1px solid var(--border);
+  border-radius:6px; padding:8px 10px;
+  font-size:10px; font-family:'DM Mono',monospace; color:var(--muted2);
+  line-height:1.6; max-height:120px; overflow-y:auto; white-space:pre-wrap;
+  word-break:break-word;
+}
+.rc-textbox-label {
+  font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.07em; margin-top:8px; margin-bottom:3px;
+}
+
+/* ─── LIGHTBOX ───────────────────────────────────────────────── */
+#lightbox {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(8,8,9,.92); backdrop-filter:blur(10px);
+  display:none; align-items:center; justify-content:center;
+  padding:40px;
+}
+#lightbox.open { display:flex; }
+#lightbox img {
+  max-width:100%; max-height:100%;
+  border-radius:10px; box-shadow:0 20px 80px rgba(0,0,0,.8);
+  object-fit:contain;
+}
+#lightbox-close {
+  position:absolute; top:20px; right:20px;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
+  color:#fff; width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:18px; transition:background .15s;
+}
+#lightbox-close:hover { background:rgba(255,255,255,.2); }
+#lightbox-info {
+  position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+  background:rgba(20,20,23,.85); backdrop-filter:blur(8px);
+  border:1px solid var(--border2); border-radius:8px;
+  padding:8px 16px; font-size:12px; font-family:'DM Mono',monospace;
+  color:var(--muted2); white-space:nowrap;
+}
+
+/* ─── STATS BAR ──────────────────────────────────────────────── */
+.stats-bar {
+  display:flex; gap:1px; background:var(--border); border-radius:10px;
+  overflow:hidden; margin-top:12px;
+}
+.stat-item {
+  flex:1; background:var(--s1); padding:12px 14px; text-align:center;
+}
+.stat-num { font-size:18px; font-weight:700; font-family:'Instrument Serif',serif; color:var(--text); line-height:1; }
+.stat-lbl { font-size:10px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em; }
+
+/* ─── SPINNER ────────────────────────────────────────────────── */
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner {
+  width:14px; height:14px; border:2px solid rgba(8,8,9,.3);
+  border-top-color:rgba(8,8,9,.9); border-radius:50%;
+  animation:spin .6s linear infinite; display:inline-block; flex-shrink:0;
+}
+
+/* ─── SCROLLBAR GLOBAL ───────────────────────────────────────── */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width:900px) {
+  .main { grid-template-columns:1fr; }
+  .preview-compare { grid-template-columns:1fr; }
+}
+@media (max-width:600px) {
+  .wrap { padding:0 16px; }
+  .api-bar { flex-direction:column; align-items:stretch; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── LIGHTBOX ───────────────────────────────────────────────── -->
+<div id="lightbox">
+  <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+  <img id="lightbox-img" src="" alt="">
+  <div id="lightbox-info"></div>
+</div>
+
+<div class="wrap">
+
+<!-- ── HEADER ─────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🍌</div>
+    <div class="logo-text">
+      <h1>Nano Banana <em>Localizer</em></h1>
+      <p>Screenshot Translation · Powered by Gemini Vision</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="pill" id="modelPill">model: —</div>
+  </div>
+</header>
+
+<!-- ── API KEY ─────────────────────────────────────────────────── -->
+<div class="api-bar">
+  <label>🔑 API Key</label>
+  <div class="api-input-wrap" style="display:flex;align-items:center;gap:0;flex:1;min-width:260px">
+    <span class="key-icon" style="position:static;transform:none;padding:0 8px 0 14px;font-size:14px">🔐</span>
+    <input type="password" id="apiKeyPrefix" value="AIzaSyBSDOE9YwUCcMssg9s-J1ZBcCVBGfZEc"
+      style="flex:1;padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-right:none;
+      border-radius:var(--radius-sm) 0 0 var(--radius-sm);color:var(--muted);
+      font-family:DM Mono,monospace;font-size:13px;outline:none;min-width:0"
+      spellcheck="false" autocomplete="off" readonly
+      title="Stored key prefix (read-only). Only enter the last 2 characters on the right.">
+    <input type="text" id="apiKeySuffix" placeholder="##" maxlength="8"
+      style="width:52px;padding:10px 8px;background:var(--s2);border:1px solid var(--border2);border-left:2px solid var(--lime);
+      border-radius:0 var(--radius-sm) var(--radius-sm) 0;color:var(--lime);
+      font-family:DM Mono,monospace;font-size:13px;font-weight:700;outline:none;text-align:center"
+      spellcheck="false" autocomplete="off"
+      title="Type the last 2 characters of your API key here">
+  </div>
+  <div class="key-status">
+    <div class="key-dot" id="keyDot"></div>
+    <span id="keyText" style="color:var(--muted);font-size:12px">Enter last 2 chars</span>
+  </div>
+</div>
+
+<!-- ── MAIN ────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
+  <div class="sidebar">
+
+    <!-- UPLOAD -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label"><div class="dot-accent"></div>Screenshots</div>
+        <button class="lang-select-all" onclick="clearFiles()" id="clearBtn" style="display:none">Clear all</button>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/webp,image/gif">
+        <span class="dz-icon">🖼️</span>
+        <div class="dz-title">Drop images here</div>
+        <div class="dz-sub">or click to browse &nbsp;·&nbsp; <strong>PNG · JPG · WEBP</strong></div>
+      </div>
+      <div id="fileList"></div>
+    </div>
+
+    <!-- LANGUAGES -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label"><div class="dot-accent"></div>Target Languages</div>
+        <div style="display:flex;gap:8px">
+          <button class="lang-select-all" onclick="toggleAllLangs(true)">All</button>
+          <button class="lang-select-all" onclick="toggleAllLangs(false)">None</button>
+        </div>
+      </div>
+      <div class="lang-grid" id="langGrid"></div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
+        <span id="langCount">0</span> language(s) selected
+      </div>
+    </div>
+
+    <!-- FORMAT -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label"><div class="dot-accent"></div>Output Format</div>
+      </div>
+      <div class="format-row">
+        <button class="fmt-btn active" id="fmt-png" onclick="setFormat('png')">PNG</button>
+        <button class="fmt-btn" id="fmt-jpg" onclick="setFormat('jpg')">JPG</button>
+        <button class="fmt-btn" id="fmt-both" onclick="setFormat('both')">Both</button>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.6">
+        PNG = lossless · JPG = smaller files · Both = download each format
+      </div>
+    </div>
+
+    <!-- TRANSLATE -->
+    <div class="card">
+      <button class="btn-run" id="runBtn" onclick="run()" disabled>
+        <span id="runIcon">▶</span>
+        <span id="runLabel">Translate Screenshots</span>
+      </button>
+      <div class="progress-wrap" id="progressWrap" style="display:none">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressText"></div>
+      </div>
+      <div id="errorBox"></div>
+      <!-- stats -->
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat-item"><div class="stat-num" id="statDone">0</div><div class="stat-lbl">Done</div></div>
+        <div class="stat-item"><div class="stat-num" id="statFail">0</div><div class="stat-lbl">Failed</div></div>
+        <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── CONTENT ────────────────────────────────────────────── -->
+  <div class="content" id="contentArea">
+    <div class="empty" id="emptyState">
+      <div class="empty-icon">🌐</div>
+      <h3>Nothing here yet</h3>
+      <p>Upload screenshots, choose target languages, then hit <strong>Translate</strong> to see localized previews here.</p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+</div><!-- /wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════════ */
+const LANGUAGES = [
+  {code:"fr",name:"French",    flag:"🇫🇷"},
+  {code:"es",name:"Spanish",   flag:"🇪🇸"},
+  {code:"de",name:"German",    flag:"🇩🇪"},
+  {code:"it",name:"Italian",   flag:"🇮🇹"},
+  {code:"pt",name:"Portuguese",flag:"🇧🇷"},
+  {code:"ja",name:"Japanese",  flag:"🇯🇵"},
+  {code:"ko",name:"Korean",    flag:"🇰🇷"},
+  {code:"zh",name:"Chinese",   flag:"🇨🇳"},
+  {code:"ar",name:"Arabic",    flag:"🇸🇦"},
+  {code:"hi",name:"Hindi",     flag:"🇮🇳"},
+  {code:"gu",name:"Gujarati",  flag:"🇮🇳"},
+  {code:"nl",name:"Dutch",     flag:"🇳🇱"},
+  {code:"pl",name:"Polish",    flag:"🇵🇱"},
+  {code:"tr",name:"Turkish",   flag:"🇹🇷"},
+  {code:"sv",name:"Swedish",   flag:"🇸🇪"},
+  {code:"ru",name:"Russian",   flag:"🇷🇺"},
+];
+
+const MODELS = [
+  "gemini-2.5-flash-preview-05-20",
+  "gemini-2.5-flash-image",
+  "gemini-2.0-flash-preview-image-generation",
+  "gemini-2.0-flash-exp",
+];
+
+let uploadedFiles = [];   // {id, file, name, size, w, h, dataUrl}
+let selectedLangs = new Set();
+let outputFormat  = "png";
+let resultsData   = [];   // {id, imgId, lang, pngUrl, jpgUrl, name}
+let statDone=0, statFail=0, statTotal=0;
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT — build language grid
+═══════════════════════════════════════════════════════════════ */
+const langGrid = document.getElementById("langGrid");
+LANGUAGES.forEach(l => {
+  const btn = document.createElement("button");
+  btn.className = "lang-btn";
+  btn.dataset.code = l.code;
+  btn.innerHTML = `<span class="lang-flag">${l.flag}</span>${l.name}`;
+  btn.onclick = () => toggleLang(l.code, btn);
+  langGrid.appendChild(btn);
+});
+
+function toggleLang(code, btn) {
+  if (selectedLangs.has(code)) { selectedLangs.delete(code); btn.classList.remove("active"); }
+  else { selectedLangs.add(code); btn.classList.add("active"); }
+  document.getElementById("langCount").textContent = selectedLangs.size;
+  checkReady();
+}
+function toggleAllLangs(on) {
+  langGrid.querySelectorAll(".lang-btn").forEach(btn => {
+    const code = btn.dataset.code;
+    if (on) { selectedLangs.add(code); btn.classList.add("active"); }
+    else    { selectedLangs.delete(code); btn.classList.remove("active"); }
+  });
+  document.getElementById("langCount").textContent = selectedLangs.size;
+  checkReady();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORMAT
+═══════════════════════════════════════════════════════════════ */
+function setFormat(f) {
+  outputFormat = f;
+  ["png","jpg","both"].forEach(x => document.getElementById("fmt-"+x).classList.toggle("active", x===f));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   API KEY
+═══════════════════════════════════════════════════════════════ */
+function getFullApiKey() {
+  const prefix = document.getElementById("apiKeyPrefix").value.trim();
+  const suffix = document.getElementById("apiKeySuffix").value.trim();
+  return prefix + suffix;
+}
+
+document.getElementById("apiKeySuffix").addEventListener("input", function() {
+  const full = getFullApiKey();
+  const dot = document.getElementById("keyDot");
+  const txt = document.getElementById("keyText");
+  if (this.value.trim().length >= 2) {
+    dot.className = "key-dot ok"; txt.textContent = "Key ready"; txt.style.color = "var(--success)";
+  } else if (this.value.trim().length > 0) {
+    dot.className = "key-dot err"; txt.textContent = "Need 2 chars"; txt.style.color = "var(--warn)";
+  } else {
+    dot.className = "key-dot"; txt.textContent = "Enter last 2 chars"; txt.style.color = "var(--muted)";
+  }
+  checkReady();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   FILE UPLOAD
+═══════════════════════════════════════════════════════════════ */
+const dropzone  = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+
+dropzone.addEventListener("dragover",  e => { e.preventDefault(); dropzone.classList.add("hover"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("hover"));
+dropzone.addEventListener("drop", e => {
+  e.preventDefault(); dropzone.classList.remove("hover");
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener("change", () => handleFiles(fileInput.files));
+
+async function handleFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith("image/")) continue;
+    const id = crypto.randomUUID();
+    const dataUrl = await readDataUrl(f);
+    const {w,h} = await imgDimensions(dataUrl);
+    uploadedFiles.push({
+      id, file:f, name:f.name,
+      size: formatBytes(f.size), w, h, dataUrl
+    });
+  }
+  renderFileList();
+  checkReady();
+  refreshContentArea();
+}
+
+function readDataUrl(file) {
+  return new Promise(res => {
+    const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
+  });
+}
+function imgDimensions(dataUrl) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => res({w:img.naturalWidth, h:img.naturalHeight});
+    img.src = dataUrl;
+  });
+}
+function formatBytes(b) {
+  if (b<1024) return b+"B";
+  if (b<1048576) return (b/1024).toFixed(0)+"KB";
+  return (b/1048576).toFixed(1)+"MB";
+}
+
+function renderFileList() {
+  const list = document.getElementById("fileList");
+  list.innerHTML = "";
+  document.getElementById("clearBtn").style.display = uploadedFiles.length ? "" : "none";
+
+  uploadedFiles.forEach((f,i) => {
+    const item = document.createElement("div");
+    item.className = "file-item";
+    item.dataset.id = f.id;
+    item.onclick = () => showPreviewForFile(f.id);
+    item.innerHTML = `
+      <img class="file-thumb" src="${f.dataUrl}" alt="">
+      <div class="file-info">
+        <div class="file-name" title="${f.name}">${f.name}</div>
+        <div class="file-meta">${f.w}×${f.h}px · ${f.size}</div>
+      </div>
+      <button class="file-remove" onclick="removeFile('${f.id}',event)" title="Remove">✕</button>`;
+    list.appendChild(item);
+  });
+}
+
+function removeFile(id, e) {
+  e.stopPropagation();
+  uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+  renderFileList();
+  checkReady();
+  refreshContentArea();
+}
+
+function clearFiles() {
+  uploadedFiles = [];
+  renderFileList();
+  checkReady();
+  refreshContentArea();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   READY CHECK
+═══════════════════════════════════════════════════════════════ */
+function checkReady() {
+  const suffix = document.getElementById("apiKeySuffix").value.trim();
+  const ok = suffix.length >= 2
+          && uploadedFiles.length > 0
+          && selectedLangs.size > 0;
+  document.getElementById("runBtn").disabled = !ok;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTENT AREA — PREVIEW
+═══════════════════════════════════════════════════════════════ */
+function refreshContentArea() {
+  const area = document.getElementById("contentArea");
+  document.getElementById("emptyState")?.remove();
+
+  if (!uploadedFiles.length && !resultsData.length) {
+    area.innerHTML = `<div class="empty" id="emptyState">
+      <div class="empty-icon">🌐</div>
+      <h3>Nothing here yet</h3>
+      <p>Upload screenshots, choose target languages, then hit <strong>Translate</strong>.</p>
+    </div>`;
+    return;
+  }
+
+  // preview panel
+  let preview = document.getElementById("previewPanel");
+  if (!preview) {
+    preview = document.createElement("div");
+    preview.className = "preview-panel"; preview.id = "previewPanel";
+    area.prepend(preview);
+  }
+  renderPreview(uploadedFiles[0]?.id);
+}
+
+let activePreviewFileId = null;
+let activePreviewLang = "original";
+
+function renderPreview(fileId) {
+  if (!fileId && uploadedFiles.length) fileId = uploadedFiles[0].id;
+  if (!fileId) return;
+  activePreviewFileId = fileId;
+  const file = uploadedFiles.find(f => f.id === fileId);
+  if (!file) return;
+
+  const panel = document.getElementById("previewPanel");
+  if (!panel) return;
+
+  // tabs = original + all langs that have results for this file
+  const doneLangs = resultsData
+    .filter(r => r.imgId === fileId)
+    .map(r => r.lang);
+
+  const tabs = ["original", ...doneLangs];
+
+  const tabHtml = tabs.map(t => {
+    const lang = LANGUAGES.find(l => l.name === t);
+    const label = t === "original" ? "📄 Original" : (lang?.flag||"")+" "+t;
+    return `<button class="ptab ${t === activePreviewLang ? "active" : ""}" onclick="switchPreviewTab('${fileId}','${t}')">${label}</button>`;
+  }).join("");
+
+  // file tabs row (all uploaded files)
+  const fileTabHtml = uploadedFiles.map(f =>
+    `<button class="ptab ${f.id === fileId ? "active" : ""}" onclick="switchPreviewFile('${f.id}')"
+      style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${f.name}">${f.name}</button>`
+  ).join("");
+
+  const res = resultsData.find(r => r.imgId === fileId && r.lang === activePreviewLang);
+  const showOriginal = activePreviewLang === "original" || !res;
+
+  const imgSrc = showOriginal ? file.dataUrl : (res?.pngUrl || res?.jpgUrl || file.dataUrl);
+  const translatedSrc = res ? (res.pngUrl || res.jpgUrl) : null;
+
+  panel.innerHTML = `
+    <div class="preview-header">
+      <div class="preview-tabs" style="flex-direction:column;gap:4px">
+        <div style="display:flex;gap:2px;overflow-x:auto">${fileTabHtml}</div>
+        <div style="display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--border);padding-top:4px">${tabHtml}</div>
+      </div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-compare">
+        <div class="compare-side">
+          <div class="compare-label"><span class="badge-orig">◈ Original</span> &nbsp; ${file.w}×${file.h}px · ${file.size}</div>
+          <img class="compare-img" src="${file.dataUrl}" alt="original" onclick="openLightbox('${file.dataUrl}','${file.name} (original)')">
+        </div>
+        <div class="compare-side">
+          <div class="compare-label"><span class="badge-trans">◈ Translated</span> ${translatedSrc ? "— "+activePreviewLang : ""}</div>
+          ${translatedSrc
+            ? `<img class="compare-img" src="${translatedSrc}" alt="translated" style="cursor:zoom-in" onclick="openLightbox('${translatedSrc}','${file.name} — ${activePreviewLang}')">`
+            : `<div class="compare-placeholder"><span style="font-size:24px;opacity:.2">🌐</span><span>Select a language tab to compare</span></div>`
+          }
+        </div>
+      </div>
+    </div>`;
+}
+
+function switchPreviewFile(fileId) {
+  activePreviewLang = "original";
+  renderPreview(fileId);
+}
+function switchPreviewTab(fileId, lang) {
+  activePreviewLang = lang;
+  renderPreview(fileId);
+}
+function showPreviewForFile(id) {
+  document.querySelectorAll(".file-item").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
+  activePreviewLang = "original";
+  renderPreview(id);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHTBOX
+═══════════════════════════════════════════════════════════════ */
+function openLightbox(src, label) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox-info").textContent = label;
+  document.getElementById("lightbox").classList.add("open");
+}
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+}
+document.getElementById("lightbox").addEventListener("click", e => {
+  if (e.target === document.getElementById("lightbox")) closeLightbox();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+
+/* ═══════════════════════════════════════════════════════════════
+   EXTRACT TEXT (text-only Gemini call, fast & cheap)
+═══════════════════════════════════════════════════════════════ */
+async function extractTextFromImage(apiKey, dataUrl, langName) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+  const prompt = `Extract ALL visible text from this screenshot exactly as it appears, then translate each piece into ${langName}.
+
+Format your response as:
+ORIGINAL → TRANSLATED
+(one per line, covering every text element in the image top-to-bottom, left-to-right)
+
+Be exhaustive — include every button, label, heading, body text, placeholder, and status message.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          contents:[{parts:[{text:prompt},{inline_data:{mime_type:mime,data:base64}}]}],
+          generationConfig:{maxOutputTokens:1024,temperature:0.1}
+        })
+      }
+    );
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  } catch(e) {
+    return ""; // non-fatal, just skip the text panel
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GEMINI API
+═══════════════════════════════════════════════════════════════ */
+async function callGemini(apiKey, dataUrl, langName, origW, origH, origFile) {
+  const base64 = dataUrl.split(",")[1];
+  const mime   = dataUrl.split(";")[0].split(":")[1];
+
+  const prompt = `You are an expert UI/UX localization engineer with pixel-perfect precision.
+
+INPUT: A screenshot of an app, game or website (${origW}x${origH} pixels).
+TARGET LANGUAGE: ${langName}
+
+=== STEP 1 — TEXT INVENTORY ===
+Mentally catalogue EVERY piece of visible text in the image:
+- Navigation items, menu labels, tab titles
+- Button text, CTA labels
+- Form labels, placeholders, input hints
+- Body text, paragraphs, descriptions
+- Headings, subheadings, section titles
+- Error messages, tooltips, badges, chips
+- Footer text, copyright, legal text
+- Any text on images or icons with text overlay
+- Timestamps, dates, numbers with units
+
+=== STEP 2 — TRANSLATION ===
+Translate ALL catalogued text into natural, fluent ${langName}.
+Use terminology native speakers actually use in software interfaces.
+Do NOT do word-for-word translation — use natural expressions.
+
+=== STEP 3 — RENDER ===
+Produce the output image with these ABSOLUTE rules:
+1. Output must be EXACTLY ${origW}x${origH} pixels - no cropping, no padding, no letterboxing
+2. Every translated text must appear in the EXACT same position as the original
+3. Font style, size, weight, and color must be IDENTICAL to the original
+4. All icons, images, illustrations, decorations stay UNCHANGED
+5. UI chrome (borders, backgrounds, shadows, gradients) stays IDENTICAL
+6. Layout, spacing, alignment — ZERO changes
+7. NO watermarks, NO borders, NO annotations added
+8. If translated text is longer, reduce font size slightly to fit — never break layout
+
+The final image must look like the app was originally designed in ${langName}.
+Return ONLY the final translated image, nothing else.`;
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: base64 } }] }],
+    generationConfig: { response_modalities: ["TEXT","IMAGE"] }
+  };
+
+  let lastError = null;
+  for (const MODEL of MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+    try {
+      const res = await fetch(url, {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        lastError = data?.error?.message || `HTTP ${res.status}`;
+        if (lastError.includes("not found") || lastError.includes("not supported")) continue;
+        throw new Error(lastError);
+      }
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      const imgPart = parts.find(p => {
+        const d = p.inlineData || p.inline_data;
+        return ((d?.mimeType || d?.mime_type)||"").startsWith("image/");
+      });
+      if (!imgPart) {
+        const tp = parts.find(p=>p.text);
+        throw new Error("No image returned. " + (tp?.text?.slice(0,150)||""));
+      }
+      document.getElementById("modelPill").textContent = "model: "+MODEL;
+      const d   = imgPart.inlineData || imgPart.inline_data;
+      const mt  = d.mimeType || d.mime_type;
+      const raw = "data:"+mt+";base64,"+d.data;
+      // Resize to original dimensions
+      return await resizeToOriginal(raw, origW, origH, origFile);
+    } catch(e) {
+      if (e.message?.includes("not found") || e.message?.includes("not supported")) {
+        lastError = e.message; continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error("No working model found. Last: " + lastError);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESIZE + MATCH ORIGINAL FILE SIZE
+   Strategy:
+   - Resize to exact original pixel dimensions
+   - For JPG originals: binary-search JPEG quality to match original byte size
+   - For PNG originals: use moderate compression to stay close to original size
+═══════════════════════════════════════════════════════════════ */
+async function resizeToOriginal(dataUrl, targetW, targetH, origFile) {
+  // Draw to canvas at exact original size
+  const pngFull = await drawToCanvas(dataUrl, targetW, targetH, "image/png");
+
+  const origMime = origFile.type || "image/png";
+  const origBytes = origFile.size;
+
+  if (origMime === "image/jpeg" || origMime === "image/jpg") {
+    // Binary-search JPEG quality to get closest file size to original
+    const jpgUrl = await matchJpgSize(pngFull, targetW, targetH, origBytes);
+    return jpgUrl;
+  } else {
+    // For PNG: canvas PNG is always uncompressed; convert via JPG at high quality
+    // then back — but actually just return the PNG and accept slight size diff.
+    // To reduce bloat: draw at original size and export as PNG (browser compresses).
+    return pngFull;
+  }
+}
+
+function drawToCanvas(src, w, h, mimeOut) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      const ctx = c.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL(mimeOut, 1.0));
+    };
+    img.onerror = () => reject(new Error("Cannot load image"));
+    img.src = src;
+  });
+}
+
+async function matchJpgSize(pngDataUrl, w, h, targetBytes) {
+  // Load once, reuse canvas
+  const img = await new Promise((res, rej) => {
+    const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = pngDataUrl;
+  });
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+
+  // Binary search quality 0.1 → 1.0 to find closest byte size
+  let lo = 0.10, hi = 1.0, best = null, bestDiff = Infinity;
+  for (let iter = 0; iter < 12; iter++) {
+    const mid = (lo + hi) / 2;
+    const url = c.toDataURL("image/jpeg", mid);
+    // base64 size → approx byte size: base64len * 3/4
+    const approxBytes = Math.floor(url.length * 0.75);
+    const diff = Math.abs(approxBytes - targetBytes);
+    if (diff < bestDiff) { bestDiff = diff; best = url; }
+    if (approxBytes > targetBytes) hi = mid;
+    else lo = mid;
+    if (hi - lo < 0.005) break;
+  }
+  return best;
+}
+
+/* convert PNG dataUrl → JPG dataUrl at given quality */
+function pngToJpg(pngDataUrl, quality=0.92) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0);
+      resolve(c.toDataURL("image/jpeg", quality));
+    };
+    img.src = pngDataUrl;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RUN
+═══════════════════════════════════════════════════════════════ */
+async function run() {
+  const apiKey = getFullApiKey();
+  if (!apiKey || uploadedFiles.length===0 || selectedLangs.size===0) return;
+
+  clearErrors();
+  resultsData = [];
+  statDone = statFail = 0;
+
+  const area = document.getElementById("contentArea");
+  document.getElementById("emptyState")?.remove();
+
+  // remove old results section
+  document.getElementById("resultsSection")?.remove();
+
+  const runBtn   = document.getElementById("runBtn");
+  const runIcon  = document.getElementById("runIcon");
+  const runLabel = document.getElementById("runLabel");
+  const pwrap    = document.getElementById("progressWrap");
+  const pfill    = document.getElementById("progressFill");
+  const ptxt     = document.getElementById("progressText");
+  const statsBar = document.getElementById("statsBar");
+
+  runBtn.disabled = true;
+  runIcon.innerHTML = `<span class="spinner" style="border-top-color:#080809"></span>`;
+  runLabel.textContent = "Translating…";
+  pwrap.style.display = "block";
+  statsBar.style.display = "none";
+
+  // Build jobs
+  const jobs = [];
+  for (const f of uploadedFiles)
+    for (const l of selectedLangs)
+      jobs.push({file:f, lang:l});
+  statTotal = jobs.length;
+  document.getElementById("statTotal").textContent = statTotal;
+
+  // Create results section
+  const section = document.createElement("div");
+  section.className = "results-section"; section.id = "resultsSection";
+  section.innerHTML = `
+    <div class="results-header">
+      <h3>🌐 Translated Screenshots <span class="count-badge" id="doneCount">0 / ${statTotal}</span></h3>
+      <button class="btn-zip" id="zipBtn" onclick="downloadZip()" disabled>
+        ⬇ Download ZIP
+      </button>
+    </div>
+    <div class="results-grid" id="resultsGrid"></div>`;
+  area.appendChild(section);
+
+  // Process
+  for (let i=0; i<jobs.length; i++) {
+    const {file, lang} = jobs[i];
+    ptxt.innerHTML = `<span style="color:var(--muted2)">${file.name}</span> → <span style="color:var(--lime)">${lang}</span> &nbsp;(${i+1}/${statTotal})`;
+
+    const cardId = "rc_"+i;
+    createResultCard(cardId, file.name, lang);
+
+    try {
+      // Run image translation and text extraction in parallel
+      const [pngUrl, extractedText] = await Promise.all([
+        callGemini(apiKey, file.dataUrl, lang, file.w, file.h, file.file),
+        extractTextFromImage(apiKey, file.dataUrl, lang)
+      ]);
+      const jpgUrl = await pngToJpg(pngUrl);
+
+      const baseName = file.name.replace(/\.[^/.]+$/,"");
+      const entry = { id:cardId, imgId:file.id, lang, pngUrl, jpgUrl, name:baseName+"_"+lang, extractedText };
+      resultsData.push(entry);
+
+      fillResultCard(cardId, pngUrl, jpgUrl, baseName, lang, extractedText);
+      statDone++;
+
+      // update preview if this is the active file
+      if (activePreviewFileId === file.id) renderPreview(file.id);
+
+    } catch(e) {
+      logError(`✗ ${file.name} → ${lang}: ${e.message}`);
+      markResultCardError(cardId, e.message);
+      statFail++;
+    }
+
+    pfill.style.width = Math.floor((i+1)/statTotal*100)+"%";
+    document.getElementById("doneCount").textContent = `${i+1} / ${statTotal}`;
+    document.getElementById("statDone").textContent = statDone;
+    document.getElementById("statFail").textContent = statFail;
+  }
+
+  runBtn.disabled = false;
+  runIcon.textContent = "▶";
+  runLabel.textContent = "Translate Screenshots";
+  ptxt.innerHTML = `<span style="color:var(--success)">✔ Done</span> — ${statDone} translated, ${statFail} failed · model: ${document.getElementById("modelPill").textContent.replace("model: ","")}`;
+  statsBar.style.display = "flex";
+
+  if (resultsData.length) {
+    document.getElementById("zipBtn").disabled = false;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT CARDS
+═══════════════════════════════════════════════════════════════ */
+function createResultCard(id, fileName, lang) {
+  const grid = document.getElementById("resultsGrid");
+  const card = document.createElement("div");
+  card.className = "result-card"; card.id = id;
+  card.innerHTML = `
+    <div class="rc-img-wrap">
+      <div class="rc-placeholder"><div class="rc-spinner"></div><span>Translating to ${lang}…</span></div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-title">${fileName}</div>
+      <div class="rc-sub">→ ${lang}</div>
+      <span class="rc-status working">● Translating…</span>
+    </div>`;
+  grid.appendChild(card);
+  card.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function fillResultCard(id, pngUrl, jpgUrl, baseName, lang, extractedText) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.classList.add("done");
+
+  const showPng  = outputFormat === "png"  || outputFormat === "both";
+  const showJpg  = outputFormat === "jpg"  || outputFormat === "both";
+  const safeText = (extractedText||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+  card.innerHTML = `
+    <div class="rc-img-wrap">
+      <img src="${pngUrl}" alt="${baseName}_${lang}" onclick="openLightbox('${pngUrl}','${baseName} — ${lang}')">
+      <div class="rc-overlay">
+        <button class="rc-preview-btn" onclick="openLightbox('${pngUrl}','${baseName} — ${lang}')">🔍 Zoom</button>
+      </div>
+    </div>
+    <div class="rc-body">
+      <div class="rc-title">${baseName}_${lang}</div>
+      <div class="rc-actions" style="margin-top:6px">
+        ${showPng ? `<a class="btn-dl-png" href="${pngUrl}" download="${baseName}_${lang}.png">⬇ PNG</a>` : ""}
+        ${showJpg ? `<a class="btn-dl-jpg" href="${jpgUrl}" download="${baseName}_${lang}.jpg">⬇ JPG</a>` : ""}
+      </div>
+      ${safeText ? `
+      <div class="rc-textbox-label">Extracted & Translated Text</div>
+      <div class="rc-textbox">${safeText}</div>` : ""}
+      <span class="rc-status done">✓ Done</span>
+    </div>`;
+}
+
+function markResultCardError(id, msg) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  const ph = card.querySelector(".rc-placeholder");
+  if (ph) ph.innerHTML = `<span style="font-size:22px;opacity:.3">✗</span><span style="color:var(--danger)">Failed</span>`;
+  const status = card.querySelector(".rc-status");
+  if (status) { status.className = "rc-status error"; status.textContent = "✗ Error"; }
+  const body = card.querySelector(".rc-body");
+  if (body) {
+    const errEl = document.createElement("div");
+    errEl.className = "rc-error-msg"; errEl.textContent = msg.slice(0,120);
+    body.appendChild(errEl);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ZIP DOWNLOAD
+═══════════════════════════════════════════════════════════════ */
+async function downloadZip() {
+  if (!resultsData.length) return;
+  const btn = document.getElementById("zipBtn");
+  btn.disabled = true; btn.textContent = "⏳ Packing…";
+
+  const zip = new JSZip();
+  const showPng = outputFormat==="png" || outputFormat==="both";
+  const showJpg = outputFormat==="jpg" || outputFormat==="both";
+
+  for (const r of resultsData) {
+    if (showPng && r.pngUrl) zip.file(r.name+".png", r.pngUrl.split(",")[1], {base64:true});
+    if (showJpg && r.jpgUrl) zip.file(r.name+".jpg", r.jpgUrl.split(",")[1], {base64:true});
+  }
+
+  const blob = await zip.generateAsync({type:"blob"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "localized_screenshots.zip";
+  a.click();
+
+  btn.disabled = false; btn.textContent = "⬇ Download ZIP";
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ERROR LOG
+═══════════════════════════════════════════════════════════════ */
+function logError(msg) {
+  const box = document.getElementById("errorBox");
+  box.style.display = "block";
+  box.textContent += msg + "\n";
+}
+function clearErrors() {
+  const box = document.getElementById("errorBox");
+  box.style.display = "none"; box.textContent = "";
+}
+</script>
+</body>
+</html>
